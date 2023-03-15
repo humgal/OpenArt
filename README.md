@@ -1,7 +1,9 @@
 # OpenArt
-- build project && run 
+- build project && run
   - cd art-server&& go build
   - ./art-server
+  - go install github.com/sjqzhang/go-fastdfs
+  - go-fastdfs server
   - cd ../art-app && yarn 
   - yarn start
   - open expo app and test app
