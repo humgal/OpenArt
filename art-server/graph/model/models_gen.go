@@ -2,19 +2,213 @@
 
 package model
 
+import (
+	"fmt"
+	"io"
+	"strconv"
+)
+
+type Bid struct {
+	ItemID     int      `json:"itemId"`
+	Balance    float64  `json:"balance"`
+	ServiceFee *float64 `json:"serviceFee"`
+	Total      *float64 `json:"total"`
+}
+
+type Collection struct {
+	ID         string  `json:"id"`
+	Name       string  `json:"name"`
+	Items      []*Item `json:"items"`
+	CreateDate *string `json:"createDate"`
+}
+
+type Item struct {
+	ID          string     `json:"id"`
+	Name        string     `json:"name"`
+	Tag         *string    `json:"tag"`
+	Description *string    `json:"description"`
+	UploadURL   string     `json:"uploadUrl"`
+	SaleStatus  int        `json:"saleStatus"`
+	Price       *ItemPrice `json:"price"`
+	CreatorID   int        `json:"creatorId"`
+	Creator     string     `json:"creator"`
+	CreateDate  *string    `json:"createDate"`
+}
+
+type ItemPrice struct {
+	Type           int     `json:"type"`
+	InitPrice      float64 `json:"initPrice"`
+	StartDate      *string `json:"startDate"`
+	ExpirationDate *string `json:"expirationDate"`
+}
+
+type Link struct {
+	Type LinkType `json:"type"`
+	URL  string   `json:"url"`
+}
+
 type NewTodo struct {
 	Text   string `json:"text"`
 	UserID string `json:"userId"`
 }
 
-type Todo struct {
-	ID   string `json:"id"`
-	Text string `json:"text"`
-	Done bool   `json:"done"`
-	User *User  `json:"user"`
+type User struct {
+	ID         string      `json:"id"`
+	Name       string      `json:"name"`
+	UserName   string      `json:"userName"`
+	Photo      *string     `json:"photo"`
+	Phone      *string     `json:"phone"`
+	Company    *string     `json:"company"`
+	Email      *string     `json:"email"`
+	Bio        *string     `json:"bio"`
+	Img        *string     `json:"img"`
+	JoinDate   *string     `json:"joinDate"`
+	VerifyType *VerifyType `json:"verifyType"`
+	VerifyName *string     `json:"verifyName"`
+	Links      []*Link     `json:"links"`
 }
 
-type User struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+type Payment struct {
+	ItemID  int     `json:"itemId"`
+	PayType int     `json:"payType"`
+	Price   float64 `json:"price"`
+	PayDate *string `json:"payDate"`
+}
+
+type Wallet struct {
+	Type     WalletType `json:"type"`
+	PubToken string     `json:"pubToken"`
+}
+
+type LinkType string
+
+const (
+	LinkTypeWebsite   LinkType = "WEBSITE"
+	LinkTypeDiscord   LinkType = "DISCORD"
+	LinkTypeInstagram LinkType = "INSTAGRAM"
+	LinkTypeYoutube   LinkType = "YOUTUBE"
+	LinkTypeFacebook  LinkType = "FACEBOOK"
+	LinkTypeTiktok    LinkType = "TIKTOK"
+)
+
+var AllLinkType = []LinkType{
+	LinkTypeWebsite,
+	LinkTypeDiscord,
+	LinkTypeInstagram,
+	LinkTypeYoutube,
+	LinkTypeFacebook,
+	LinkTypeTiktok,
+}
+
+func (e LinkType) IsValid() bool {
+	switch e {
+	case LinkTypeWebsite, LinkTypeDiscord, LinkTypeInstagram, LinkTypeYoutube, LinkTypeFacebook, LinkTypeTiktok:
+		return true
+	}
+	return false
+}
+
+func (e LinkType) String() string {
+	return string(e)
+}
+
+func (e *LinkType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = LinkType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid LinkType", str)
+	}
+	return nil
+}
+
+func (e LinkType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type VerifyType string
+
+const (
+	VerifyTypeTwitter   VerifyType = "TWITTER"
+	VerifyTypeInstagram VerifyType = "INSTAGRAM"
+)
+
+var AllVerifyType = []VerifyType{
+	VerifyTypeTwitter,
+	VerifyTypeInstagram,
+}
+
+func (e VerifyType) IsValid() bool {
+	switch e {
+	case VerifyTypeTwitter, VerifyTypeInstagram:
+		return true
+	}
+	return false
+}
+
+func (e VerifyType) String() string {
+	return string(e)
+}
+
+func (e *VerifyType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = VerifyType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid VerifyType", str)
+	}
+	return nil
+}
+
+func (e VerifyType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type WalletType string
+
+const (
+	WalletTypeBank   WalletType = "BANK"
+	WalletTypeCoin   WalletType = "COIN"
+	WalletTypeWallet WalletType = "WALLET"
+)
+
+var AllWalletType = []WalletType{
+	WalletTypeBank,
+	WalletTypeCoin,
+	WalletTypeWallet,
+}
+
+func (e WalletType) IsValid() bool {
+	switch e {
+	case WalletTypeBank, WalletTypeCoin, WalletTypeWallet:
+		return true
+	}
+	return false
+}
+
+func (e WalletType) String() string {
+	return string(e)
+}
+
+func (e *WalletType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = WalletType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid walletType", str)
+	}
+	return nil
+}
+
+func (e WalletType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }

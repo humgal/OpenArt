@@ -2,20 +2,101 @@
 #
 # https://gqlgen.com/getting-started/
 
-type Todo {
-  id: ID!
-  text: String!
-  done: Boolean!
-  user: User!
-}
-
 type User {
   id: ID!
   name: String!
+  userName: String!
+  photo: String
+  phone: String
+  company: String
+  email: String
+  bio: String
+  img: String
+  joinDate: Date
+  verifyType: VerifyType
+  verifyName: String
+  links: [Link]
 }
 
+enum VerifyType {
+  TWITTER
+  INSTAGRAM
+}
+
+enum LinkType{
+  WEBSITE
+  DISCORD
+  INSTAGRAM
+  YOUTUBE
+  FACEBOOK
+  TIKTOK
+}
+
+type Link {
+  type: LinkType!
+  url: String!
+}
+
+scalar Date
+
+type Item {
+  id: ID!
+  name: String!
+  tag: String
+  description: String
+  uploadUrl: String!
+  saleStatus: Int!
+  price: ItemPrice
+  creatorId: Int!
+  creator: String!
+  createDate: Date
+}
+
+type ItemPrice {
+  type: Int!
+  initPrice: Float!
+  startDate: Date
+  expirationDate: Date
+
+}
+
+type Collection {
+  id: ID!
+  name: String!
+  items: [Item]
+  createDate: Date
+
+}
+
+enum walletType {
+  BANK
+  COIN
+  WALLET
+}
+
+type wallet {
+  type: walletType!
+  pubToken: String!
+}
+
+type payment {
+  itemId: Int!
+  payType: Int!
+  price: Float!
+  payDate: Date
+  
+}
+
+input Bid {
+  itemId: Int!
+  balance: Float!
+  serviceFee: Float
+  total: Float
+}
+
+
 type Query {
-  todos: [Todo!]!
+  placeBid(bid: Bid) :String
 }
 
 input NewTodo {
@@ -24,5 +105,5 @@ input NewTodo {
 }
 
 type Mutation {
-  createTodo(input: NewTodo!): Todo!
+  createTodo(input: NewTodo!):String!
 }
