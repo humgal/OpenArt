@@ -6,7 +6,8 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "codegen": "graphql-codegen --config codegen.ts"
   },
   "dependencies": {
     "@expo/webpack-config": "^18.0.1",
@@ -14,6 +15,7 @@
     "babel-plugin-react-native-platform-specific-extensions": "^1.1.1",
     "expo": "~48.0.6",
     "expo-status-bar": "~1.4.4",
+    "graphql": "^16.6.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-native": "0.71.3",
@@ -23,8 +25,11 @@
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
+    "@graphql-codegen/cli": "3.2.2",
+    "@graphql-codegen/client-preset": "2.1.1",
     "@types/react": "~18.0.14",
-    "typescript": "^4.9.4"
+    "typescript": "^4.9.4",
+    "@graphql-codegen/introspection": "3.0.1"
   },
   "private": true
 }
