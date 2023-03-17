@@ -8,10 +8,6 @@ import (
 	"strconv"
 )
 
-type CreateorProfile interface {
-	IsCreateorProfile()
-}
-
 type Bid struct {
 	ItemID     int      `json:"itemId"`
 	Balance    float64  `json:"balance"`
@@ -33,13 +29,12 @@ type CollectionParm struct {
 }
 
 type Creator struct {
-	Name        *string `json:"name"`
+	UserID      string  `json:"userId"`
+	Name        string  `json:"name"`
 	Description *string `json:"description"`
 	Followers   []*int  `json:"followers"`
 	FollowerNum *int    `json:"followerNum"`
 }
-
-func (Creator) IsCreateorProfile() {}
 
 type Item struct {
 	ID          string     `json:"id"`
@@ -55,17 +50,11 @@ type Item struct {
 
 type ItemPrice struct {
 	Type           int        `json:"type"`
-	Onsale         OnsaleCoin `json:"onsale"`
+	Onsale         OnsaleType `json:"onsale"`
 	InitPrice      float64    `json:"initPrice"`
 	StartDate      *string    `json:"startDate"`
 	ExpirationDate *string    `json:"expirationDate"`
 }
-
-type Items struct {
-	Items []*Item `json:"items"`
-}
-
-func (Items) IsCreateorProfile() {}
 
 type Link struct {
 	Type LinkType `json:"type"`
@@ -82,7 +71,7 @@ type SearchParm struct {
 	Type    *SearchType `json:"type"`
 	Price   *PriceRange `json:"price"`
 	Chain   *Blockchain `json:"chain"`
-	Onsale  *OnsaleCoin `json:"onsale"`
+	Onsale  *OnsaleType `json:"onsale"`
 	Creator *string     `json:"creator"`
 }
 
@@ -99,7 +88,16 @@ type User struct {
 	JoinDate   *string     `json:"joinDate"`
 	VerifyType *VerifyType `json:"verifyType"`
 	VerifyName *string     `json:"verifyName"`
+	IsCreator  *bool       `json:"isCreator"`
 	Links      []*Link     `json:"links"`
+}
+
+type PayParam struct {
+	ID         string     `json:"id"`
+	OnsaleType OnsaleType `json:"onsaleType"`
+	Balance    float64    `json:"balance"`
+	ServiceFee float64    `json:"serviceFee"`
+	PayAmount  float64    `json:"payAmount"`
 }
 
 type Payment struct {
@@ -220,46 +218,46 @@ func (e LinkType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
-type OnsaleCoin string
+type OnsaleType string
 
 const (
-	OnsaleCoinEth   OnsaleCoin = "ETH"
-	OnsaleCoinWeth  OnsaleCoin = "WETH"
-	OnsaleCoinOxBtc OnsaleCoin = "oxBTC"
+	OnsaleTypeEth   OnsaleType = "ETH"
+	OnsaleTypeWeth  OnsaleType = "WETH"
+	OnsaleTypeOxBtc OnsaleType = "oxBTC"
 )
 
-var AllOnsaleCoin = []OnsaleCoin{
-	OnsaleCoinEth,
-	OnsaleCoinWeth,
-	OnsaleCoinOxBtc,
+var AllOnsaleType = []OnsaleType{
+	OnsaleTypeEth,
+	OnsaleTypeWeth,
+	OnsaleTypeOxBtc,
 }
 
-func (e OnsaleCoin) IsValid() bool {
+func (e OnsaleType) IsValid() bool {
 	switch e {
-	case OnsaleCoinEth, OnsaleCoinWeth, OnsaleCoinOxBtc:
+	case OnsaleTypeEth, OnsaleTypeWeth, OnsaleTypeOxBtc:
 		return true
 	}
 	return false
 }
 
-func (e OnsaleCoin) String() string {
+func (e OnsaleType) String() string {
 	return string(e)
 }
 
-func (e *OnsaleCoin) UnmarshalGQL(v interface{}) error {
+func (e *OnsaleType) UnmarshalGQL(v interface{}) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
 	}
 
-	*e = OnsaleCoin(str)
+	*e = OnsaleType(str)
 	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid OnsaleCoin", str)
+		return fmt.Errorf("%s is not a valid OnsaleType", str)
 	}
 	return nil
 }
 
-func (e OnsaleCoin) MarshalGQL(w io.Writer) {
+func (e OnsaleType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

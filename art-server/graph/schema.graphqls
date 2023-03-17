@@ -15,6 +15,7 @@ type User {
   joinDate: Date
   verifyType: VerifyType
   verifyName: String
+  isCreator: Boolean
   links: [Link]
 }
 
@@ -55,7 +56,7 @@ type Item {
 
 type ItemPrice {
   type: Int!
-  onsale: OnsaleCoin!
+  onsale: OnsaleType!
   initPrice: Float!
   startDate: Date
   expirationDate: Date
@@ -126,11 +127,11 @@ input SearchParm {
   type: SearchType
   price: PriceRange
   chain: Blockchain
-  onsale: OnsaleCoin
+  onsale: OnsaleType
   creator: String
 }
 
-enum OnsaleCoin {
+enum OnsaleType {
   ETH
   WETH
   oxBTC
@@ -152,31 +153,36 @@ input CollectionParm {
 }
 
 type Creator {
-  name: String
+  userId: ID!
+  name: String!
   description: String
   followers: [Int]
   followerNum: Int
 }
 
-type Items {
-  items: [Item]
+input payParam {
+  id: ID!
+  onsaleType: OnsaleType!
+  balance: Float!
+  serviceFee: Float!
+  payAmount: Float!
 }
-
-union CreateorProfile = Creator | Items
 
 type Query {
   searchItems(param:SearchParm!): [Item]
   user(id:ID!): User
-  itemDetail(id:ID!): Item
-  collection:Collection
-  discoverCreator(type: Int): [Creator]
-  createorProfile(name: String): CreateorProfile!
+  item(id:ID!): Item
+  collection(createor:String!):Collection
+  items(createor:String,):[Item]
+  createor(name:String):Creator
+  featureCreator(type:Int!):[Creator]
 }
 
 
 type Mutation {
   placeBid(bid: Bid): String
   uploadArt(items:[uploadItem!]): [Item!]!
+  mintArt(items:[uploadItem!]): [Item!]!
   createCollection(param: CollectionParm!): Collection
-
+  checkout(param:payParam): String
 }

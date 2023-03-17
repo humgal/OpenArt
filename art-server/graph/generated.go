@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"strconv"
 	"sync"
-	"sync/atomic"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
@@ -58,6 +57,7 @@ type ComplexityRoot struct {
 		FollowerNum func(childComplexity int) int
 		Followers   func(childComplexity int) int
 		Name        func(childComplexity int) int
+		UserID      func(childComplexity int) int
 	}
 
 	Item struct {
@@ -80,28 +80,27 @@ type ComplexityRoot struct {
 		Type           func(childComplexity int) int
 	}
 
-	Items struct {
-		Items func(childComplexity int) int
-	}
-
 	Link struct {
 		Type func(childComplexity int) int
 		URL  func(childComplexity int) int
 	}
 
 	Mutation struct {
+		Checkout         func(childComplexity int, param *model.PayParam) int
 		CreateCollection func(childComplexity int, param model.CollectionParm) int
+		MintArt          func(childComplexity int, items []*model.UploadItem) int
 		PlaceBid         func(childComplexity int, bid *model.Bid) int
 		UploadArt        func(childComplexity int, items []*model.UploadItem) int
 	}
 
 	Query struct {
-		Collection      func(childComplexity int) int
-		CreateorProfile func(childComplexity int, name *string) int
-		DiscoverCreator func(childComplexity int, typeArg *int) int
-		ItemDetail      func(childComplexity int, id string) int
-		SearchItems     func(childComplexity int, param model.SearchParm) int
-		User            func(childComplexity int, id string) int
+		Collection     func(childComplexity int, createor string) int
+		Createor       func(childComplexity int, name *string) int
+		FeatureCreator func(childComplexity int, typeArg int) int
+		Item           func(childComplexity int, id string) int
+		Items          func(childComplexity int, createor *string) int
+		SearchItems    func(childComplexity int, param model.SearchParm) int
+		User           func(childComplexity int, id string) int
 	}
 
 	User struct {
@@ -110,6 +109,7 @@ type ComplexityRoot struct {
 		Email      func(childComplexity int) int
 		ID         func(childComplexity int) int
 		Img        func(childComplexity int) int
+		IsCreator  func(childComplexity int) int
 		JoinDate   func(childComplexity int) int
 		Links      func(childComplexity int) int
 		Name       func(childComplexity int) int
@@ -136,15 +136,18 @@ type ComplexityRoot struct {
 type MutationResolver interface {
 	PlaceBid(ctx context.Context, bid *model.Bid) (*string, error)
 	UploadArt(ctx context.Context, items []*model.UploadItem) ([]*model.Item, error)
+	MintArt(ctx context.Context, items []*model.UploadItem) ([]*model.Item, error)
 	CreateCollection(ctx context.Context, param model.CollectionParm) (*model.Collection, error)
+	Checkout(ctx context.Context, param *model.PayParam) (*string, error)
 }
 type QueryResolver interface {
 	SearchItems(ctx context.Context, param model.SearchParm) ([]*model.Item, error)
 	User(ctx context.Context, id string) (*model.User, error)
-	ItemDetail(ctx context.Context, id string) (*model.Item, error)
-	Collection(ctx context.Context) (*model.Collection, error)
-	DiscoverCreator(ctx context.Context, typeArg *int) ([]*model.Creator, error)
-	CreateorProfile(ctx context.Context, name *string) (model.CreateorProfile, error)
+	Item(ctx context.Context, id string) (*model.Item, error)
+	Collection(ctx context.Context, createor string) (*model.Collection, error)
+	Items(ctx context.Context, createor *string) ([]*model.Item, error)
+	Createor(ctx context.Context, name *string) (*model.Creator, error)
+	FeatureCreator(ctx context.Context, typeArg int) ([]*model.Creator, error)
 }
 
 type executableSchema struct {
@@ -224,6 +227,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Creator.Name(childComplexity), true
+
+	case "Creator.userId":
+		if e.complexity.Creator.UserID == nil {
+			break
+		}
+
+		return e.complexity.Creator.UserID(childComplexity), true
 
 	case "Item.createDate":
 		if e.complexity.Item.CreateDate == nil {
@@ -323,13 +333,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ItemPrice.Type(childComplexity), true
 
-	case "Items.items":
-		if e.complexity.Items.Items == nil {
-			break
-		}
-
-		return e.complexity.Items.Items(childComplexity), true
-
 	case "Link.type":
 		if e.complexity.Link.Type == nil {
 			break
@@ -344,6 +347,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Link.URL(childComplexity), true
 
+	case "Mutation.checkout":
+		if e.complexity.Mutation.Checkout == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_checkout_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.Checkout(childComplexity, args["param"].(*model.PayParam)), true
+
 	case "Mutation.createCollection":
 		if e.complexity.Mutation.CreateCollection == nil {
 			break
@@ -355,6 +370,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreateCollection(childComplexity, args["param"].(model.CollectionParm)), true
+
+	case "Mutation.mintArt":
+		if e.complexity.Mutation.MintArt == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_mintArt_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.MintArt(childComplexity, args["items"].([]*model.UploadItem)), true
 
 	case "Mutation.placeBid":
 		if e.complexity.Mutation.PlaceBid == nil {
@@ -385,43 +412,60 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.Query.Collection(childComplexity), true
-
-	case "Query.createorProfile":
-		if e.complexity.Query.CreateorProfile == nil {
-			break
-		}
-
-		args, err := ec.field_Query_createorProfile_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_collection_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Query.CreateorProfile(childComplexity, args["name"].(*string)), true
+		return e.complexity.Query.Collection(childComplexity, args["createor"].(string)), true
 
-	case "Query.discoverCreator":
-		if e.complexity.Query.DiscoverCreator == nil {
+	case "Query.createor":
+		if e.complexity.Query.Createor == nil {
 			break
 		}
 
-		args, err := ec.field_Query_discoverCreator_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_createor_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Query.DiscoverCreator(childComplexity, args["type"].(*int)), true
+		return e.complexity.Query.Createor(childComplexity, args["name"].(*string)), true
 
-	case "Query.itemDetail":
-		if e.complexity.Query.ItemDetail == nil {
+	case "Query.featureCreator":
+		if e.complexity.Query.FeatureCreator == nil {
 			break
 		}
 
-		args, err := ec.field_Query_itemDetail_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_featureCreator_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Query.ItemDetail(childComplexity, args["id"].(string)), true
+		return e.complexity.Query.FeatureCreator(childComplexity, args["type"].(int)), true
+
+	case "Query.item":
+		if e.complexity.Query.Item == nil {
+			break
+		}
+
+		args, err := ec.field_Query_item_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Item(childComplexity, args["id"].(string)), true
+
+	case "Query.items":
+		if e.complexity.Query.Items == nil {
+			break
+		}
+
+		args, err := ec.field_Query_items_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Items(childComplexity, args["createor"].(*string)), true
 
 	case "Query.searchItems":
 		if e.complexity.Query.SearchItems == nil {
@@ -481,6 +525,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.User.Img(childComplexity), true
+
+	case "User.isCreator":
+		if e.complexity.User.IsCreator == nil {
+			break
+		}
+
+		return e.complexity.User.IsCreator(childComplexity), true
 
 	case "User.joinDate":
 		if e.complexity.User.JoinDate == nil {
@@ -592,6 +643,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputCollectionParm,
 		ec.unmarshalInputPriceRange,
 		ec.unmarshalInputSearchParm,
+		ec.unmarshalInputpayParam,
 		ec.unmarshalInputuploadItem,
 	)
 	first := true
@@ -672,6 +724,21 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
 // region    ***************************** args.gotpl *****************************
 
+func (ec *executionContext) field_Mutation_checkout_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *model.PayParam
+	if tmp, ok := rawArgs["param"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("param"))
+		arg0, err = ec.unmarshalOpayParam2ᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐPayParam(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["param"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_createCollection_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -684,6 +751,21 @@ func (ec *executionContext) field_Mutation_createCollection_args(ctx context.Con
 		}
 	}
 	args["param"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_mintArt_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 []*model.UploadItem
+	if tmp, ok := rawArgs["items"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("items"))
+		arg0, err = ec.unmarshalOuploadItem2ᚕᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐUploadItemᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["items"] = arg0
 	return args, nil
 }
 
@@ -732,7 +814,22 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_createorProfile_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query_collection_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["createor"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createor"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["createor"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_createor_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 *string
@@ -747,13 +844,13 @@ func (ec *executionContext) field_Query_createorProfile_args(ctx context.Context
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_discoverCreator_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query_featureCreator_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *int
+	var arg0 int
 	if tmp, ok := rawArgs["type"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
-		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -762,7 +859,7 @@ func (ec *executionContext) field_Query_discoverCreator_args(ctx context.Context
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_itemDetail_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query_item_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -774,6 +871,21 @@ func (ec *executionContext) field_Query_itemDetail_args(ctx context.Context, raw
 		}
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_items_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["createor"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createor"))
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["createor"] = arg0
 	return args, nil
 }
 
@@ -1076,6 +1188,50 @@ func (ec *executionContext) fieldContext_Collection_createor(ctx context.Context
 	return fc, nil
 }
 
+func (ec *executionContext) _Creator_userId(ctx context.Context, field graphql.CollectedField, obj *model.Creator) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Creator_userId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UserID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Creator_userId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Creator",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Creator_name(ctx context.Context, field graphql.CollectedField, obj *model.Creator) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Creator_name(ctx, field)
 	if err != nil {
@@ -1097,11 +1253,14 @@ func (ec *executionContext) _Creator_name(ctx context.Context, field graphql.Col
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Creator_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1706,9 +1865,9 @@ func (ec *executionContext) _ItemPrice_onsale(ctx context.Context, field graphql
 		}
 		return graphql.Null
 	}
-	res := resTmp.(model.OnsaleCoin)
+	res := resTmp.(model.OnsaleType)
 	fc.Result = res
-	return ec.marshalNOnsaleCoin2githubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐOnsaleCoin(ctx, field.Selections, res)
+	return ec.marshalNOnsaleType2githubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐOnsaleType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ItemPrice_onsale(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1718,7 +1877,7 @@ func (ec *executionContext) fieldContext_ItemPrice_onsale(ctx context.Context, f
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type OnsaleCoin does not have child fields")
+			return nil, errors.New("field of type OnsaleType does not have child fields")
 		},
 	}
 	return fc, nil
@@ -1845,67 +2004,6 @@ func (ec *executionContext) fieldContext_ItemPrice_expirationDate(ctx context.Co
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Date does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Items_items(ctx context.Context, field graphql.CollectedField, obj *model.Items) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Items_items(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Items, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*model.Item)
-	fc.Result = res
-	return ec.marshalOItem2ᚕᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐItem(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Items_items(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Items",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Item_id(ctx, field)
-			case "name":
-				return ec.fieldContext_Item_name(ctx, field)
-			case "tag":
-				return ec.fieldContext_Item_tag(ctx, field)
-			case "description":
-				return ec.fieldContext_Item_description(ctx, field)
-			case "uploadUrl":
-				return ec.fieldContext_Item_uploadUrl(ctx, field)
-			case "saleStatus":
-				return ec.fieldContext_Item_saleStatus(ctx, field)
-			case "price":
-				return ec.fieldContext_Item_price(ctx, field)
-			case "creator":
-				return ec.fieldContext_Item_creator(ctx, field)
-			case "createDate":
-				return ec.fieldContext_Item_createDate(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Item", field.Name)
 		},
 	}
 	return fc, nil
@@ -2126,6 +2224,81 @@ func (ec *executionContext) fieldContext_Mutation_uploadArt(ctx context.Context,
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_mintArt(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_mintArt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().MintArt(rctx, fc.Args["items"].([]*model.UploadItem))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Item)
+	fc.Result = res
+	return ec.marshalNItem2ᚕᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐItemᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_mintArt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Item_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Item_name(ctx, field)
+			case "tag":
+				return ec.fieldContext_Item_tag(ctx, field)
+			case "description":
+				return ec.fieldContext_Item_description(ctx, field)
+			case "uploadUrl":
+				return ec.fieldContext_Item_uploadUrl(ctx, field)
+			case "saleStatus":
+				return ec.fieldContext_Item_saleStatus(ctx, field)
+			case "price":
+				return ec.fieldContext_Item_price(ctx, field)
+			case "creator":
+				return ec.fieldContext_Item_creator(ctx, field)
+			case "createDate":
+				return ec.fieldContext_Item_createDate(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Item", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_mintArt_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_createCollection(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_createCollection(ctx, field)
 	if err != nil {
@@ -2184,6 +2357,58 @@ func (ec *executionContext) fieldContext_Mutation_createCollection(ctx context.C
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_createCollection_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_checkout(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_checkout(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().Checkout(rctx, fc.Args["param"].(*model.PayParam))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_checkout(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_checkout_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -2322,6 +2547,8 @@ func (ec *executionContext) fieldContext_Query_user(ctx context.Context, field g
 				return ec.fieldContext_User_verifyType(ctx, field)
 			case "verifyName":
 				return ec.fieldContext_User_verifyName(ctx, field)
+			case "isCreator":
+				return ec.fieldContext_User_isCreator(ctx, field)
 			case "links":
 				return ec.fieldContext_User_links(ctx, field)
 			}
@@ -2342,8 +2569,8 @@ func (ec *executionContext) fieldContext_Query_user(ctx context.Context, field g
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_itemDetail(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_itemDetail(ctx, field)
+func (ec *executionContext) _Query_item(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_item(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -2356,7 +2583,7 @@ func (ec *executionContext) _Query_itemDetail(ctx context.Context, field graphql
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ItemDetail(rctx, fc.Args["id"].(string))
+		return ec.resolvers.Query().Item(rctx, fc.Args["id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2370,7 +2597,7 @@ func (ec *executionContext) _Query_itemDetail(ctx context.Context, field graphql
 	return ec.marshalOItem2ᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐItem(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Query_itemDetail(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_item(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
@@ -2407,7 +2634,7 @@ func (ec *executionContext) fieldContext_Query_itemDetail(ctx context.Context, f
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_itemDetail_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Query_item_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -2428,7 +2655,7 @@ func (ec *executionContext) _Query_collection(ctx context.Context, field graphql
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Collection(rctx)
+		return ec.resolvers.Query().Collection(rctx, fc.Args["createor"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2464,11 +2691,22 @@ func (ec *executionContext) fieldContext_Query_collection(ctx context.Context, f
 			return nil, fmt.Errorf("no field named %q was found under type Collection", field.Name)
 		},
 	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_collection_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_discoverCreator(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_discoverCreator(ctx, field)
+func (ec *executionContext) _Query_items(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_items(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -2481,7 +2719,7 @@ func (ec *executionContext) _Query_discoverCreator(ctx context.Context, field gr
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().DiscoverCreator(rctx, fc.Args["type"].(*int))
+		return ec.resolvers.Query().Items(rctx, fc.Args["createor"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2490,12 +2728,12 @@ func (ec *executionContext) _Query_discoverCreator(ctx context.Context, field gr
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]*model.Creator)
+	res := resTmp.([]*model.Item)
 	fc.Result = res
-	return ec.marshalOCreator2ᚕᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐCreator(ctx, field.Selections, res)
+	return ec.marshalOItem2ᚕᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐItem(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Query_discoverCreator(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_items(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
@@ -2503,6 +2741,80 @@ func (ec *executionContext) fieldContext_Query_discoverCreator(ctx context.Conte
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
+			case "id":
+				return ec.fieldContext_Item_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Item_name(ctx, field)
+			case "tag":
+				return ec.fieldContext_Item_tag(ctx, field)
+			case "description":
+				return ec.fieldContext_Item_description(ctx, field)
+			case "uploadUrl":
+				return ec.fieldContext_Item_uploadUrl(ctx, field)
+			case "saleStatus":
+				return ec.fieldContext_Item_saleStatus(ctx, field)
+			case "price":
+				return ec.fieldContext_Item_price(ctx, field)
+			case "creator":
+				return ec.fieldContext_Item_creator(ctx, field)
+			case "createDate":
+				return ec.fieldContext_Item_createDate(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Item", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_items_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_createor(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_createor(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Createor(rctx, fc.Args["name"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.Creator)
+	fc.Result = res
+	return ec.marshalOCreator2ᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐCreator(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_createor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "userId":
+				return ec.fieldContext_Creator_userId(ctx, field)
 			case "name":
 				return ec.fieldContext_Creator_name(ctx, field)
 			case "description":
@@ -2522,15 +2834,15 @@ func (ec *executionContext) fieldContext_Query_discoverCreator(ctx context.Conte
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_discoverCreator_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Query_createor_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_createorProfile(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_createorProfile(ctx, field)
+func (ec *executionContext) _Query_featureCreator(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_featureCreator(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -2543,31 +2855,40 @@ func (ec *executionContext) _Query_createorProfile(ctx context.Context, field gr
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().CreateorProfile(rctx, fc.Args["name"].(*string))
+		return ec.resolvers.Query().FeatureCreator(rctx, fc.Args["type"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(model.CreateorProfile)
+	res := resTmp.([]*model.Creator)
 	fc.Result = res
-	return ec.marshalNCreateorProfile2githubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐCreateorProfile(ctx, field.Selections, res)
+	return ec.marshalOCreator2ᚕᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐCreator(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Query_createorProfile(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_featureCreator(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type CreateorProfile does not have child fields")
+			switch field.Name {
+			case "userId":
+				return ec.fieldContext_Creator_userId(ctx, field)
+			case "name":
+				return ec.fieldContext_Creator_name(ctx, field)
+			case "description":
+				return ec.fieldContext_Creator_description(ctx, field)
+			case "followers":
+				return ec.fieldContext_Creator_followers(ctx, field)
+			case "followerNum":
+				return ec.fieldContext_Creator_followerNum(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Creator", field.Name)
 		},
 	}
 	defer func() {
@@ -2577,7 +2898,7 @@ func (ec *executionContext) fieldContext_Query_createorProfile(ctx context.Conte
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_createorProfile_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Query_featureCreator_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -3209,6 +3530,47 @@ func (ec *executionContext) fieldContext_User_verifyName(ctx context.Context, fi
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _User_isCreator(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_isCreator(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsCreator, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_User_isCreator(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	return fc, nil
@@ -5469,7 +5831,7 @@ func (ec *executionContext) unmarshalInputSearchParm(ctx context.Context, obj in
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onsale"))
-			it.Onsale, err = ec.unmarshalOOnsaleCoin2ᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐOnsaleCoin(ctx, v)
+			it.Onsale, err = ec.unmarshalOOnsaleType2ᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐOnsaleType(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5478,6 +5840,66 @@ func (ec *executionContext) unmarshalInputSearchParm(ctx context.Context, obj in
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("creator"))
 			it.Creator, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputpayParam(ctx context.Context, obj interface{}) (model.PayParam, error) {
+	var it model.PayParam
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"id", "onsaleType", "balance", "serviceFee", "payAmount"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			it.ID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "onsaleType":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onsaleType"))
+			it.OnsaleType, err = ec.unmarshalNOnsaleType2githubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐOnsaleType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "balance":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("balance"))
+			it.Balance, err = ec.unmarshalNFloat2float64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "serviceFee":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("serviceFee"))
+			it.ServiceFee, err = ec.unmarshalNFloat2float64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "payAmount":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("payAmount"))
+			it.PayAmount, err = ec.unmarshalNFloat2float64(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5567,29 +5989,6 @@ func (ec *executionContext) unmarshalInputuploadItem(ctx context.Context, obj in
 
 // region    ************************** interface.gotpl ***************************
 
-func (ec *executionContext) _CreateorProfile(ctx context.Context, sel ast.SelectionSet, obj model.CreateorProfile) graphql.Marshaler {
-	switch obj := (obj).(type) {
-	case nil:
-		return graphql.Null
-	case model.Creator:
-		return ec._Creator(ctx, sel, &obj)
-	case *model.Creator:
-		if obj == nil {
-			return graphql.Null
-		}
-		return ec._Creator(ctx, sel, obj)
-	case model.Items:
-		return ec._Items(ctx, sel, &obj)
-	case *model.Items:
-		if obj == nil {
-			return graphql.Null
-		}
-		return ec._Items(ctx, sel, obj)
-	default:
-		panic(fmt.Errorf("unexpected type %T", obj))
-	}
-}
-
 // endregion ************************** interface.gotpl ***************************
 
 // region    **************************** object.gotpl ****************************
@@ -5641,7 +6040,7 @@ func (ec *executionContext) _Collection(ctx context.Context, sel ast.SelectionSe
 	return out
 }
 
-var creatorImplementors = []string{"Creator", "CreateorProfile"}
+var creatorImplementors = []string{"Creator"}
 
 func (ec *executionContext) _Creator(ctx context.Context, sel ast.SelectionSet, obj *model.Creator) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, creatorImplementors)
@@ -5651,10 +6050,20 @@ func (ec *executionContext) _Creator(ctx context.Context, sel ast.SelectionSet, 
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Creator")
+		case "userId":
+
+			out.Values[i] = ec._Creator_userId(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "name":
 
 			out.Values[i] = ec._Creator_name(ctx, field, obj)
 
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "description":
 
 			out.Values[i] = ec._Creator_description(ctx, field, obj)
@@ -5800,31 +6209,6 @@ func (ec *executionContext) _ItemPrice(ctx context.Context, sel ast.SelectionSet
 	return out
 }
 
-var itemsImplementors = []string{"Items", "CreateorProfile"}
-
-func (ec *executionContext) _Items(ctx context.Context, sel ast.SelectionSet, obj *model.Items) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, itemsImplementors)
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("Items")
-		case "items":
-
-			out.Values[i] = ec._Items_items(ctx, field, obj)
-
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
 var linkImplementors = []string{"Link"}
 
 func (ec *executionContext) _Link(ctx context.Context, sel ast.SelectionSet, obj *model.Link) graphql.Marshaler {
@@ -5894,10 +6278,25 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "mintArt":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_mintArt(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "createCollection":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createCollection(ctx, field)
+			})
+
+		case "checkout":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_checkout(ctx, field)
 			})
 
 		default:
@@ -5970,7 +6369,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
-		case "itemDetail":
+		case "item":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -5979,7 +6378,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_itemDetail(ctx, field)
+				res = ec._Query_item(ctx, field)
 				return res
 			}
 
@@ -6010,7 +6409,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
-		case "discoverCreator":
+		case "items":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -6019,7 +6418,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_discoverCreator(ctx, field)
+				res = ec._Query_items(ctx, field)
 				return res
 			}
 
@@ -6030,7 +6429,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
-		case "createorProfile":
+		case "createor":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -6039,10 +6438,27 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_createorProfile(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
+				res = ec._Query_createor(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "featureCreator":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_featureCreator(ctx, field)
 				return res
 			}
 
@@ -6142,6 +6558,10 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 		case "verifyName":
 
 			out.Values[i] = ec._User_verifyName(ctx, field, obj)
+
+		case "isCreator":
+
+			out.Values[i] = ec._User_isCreator(ctx, field, obj)
 
 		case "links":
 
@@ -6577,16 +6997,6 @@ func (ec *executionContext) unmarshalNCollectionParm2githubᚗcomᚋhumgalᚋart
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNCreateorProfile2githubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐCreateorProfile(ctx context.Context, sel ast.SelectionSet, v model.CreateorProfile) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._CreateorProfile(ctx, sel, v)
-}
-
 func (ec *executionContext) unmarshalNFloat2float64(ctx context.Context, v interface{}) (float64, error) {
 	res, err := graphql.UnmarshalFloatContext(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -6696,13 +7106,13 @@ func (ec *executionContext) marshalNLinkType2githubᚗcomᚋhumgalᚋartᚑserve
 	return v
 }
 
-func (ec *executionContext) unmarshalNOnsaleCoin2githubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐOnsaleCoin(ctx context.Context, v interface{}) (model.OnsaleCoin, error) {
-	var res model.OnsaleCoin
+func (ec *executionContext) unmarshalNOnsaleType2githubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐOnsaleType(ctx context.Context, v interface{}) (model.OnsaleType, error) {
+	var res model.OnsaleType
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNOnsaleCoin2githubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐOnsaleCoin(ctx context.Context, sel ast.SelectionSet, v model.OnsaleCoin) graphql.Marshaler {
+func (ec *executionContext) marshalNOnsaleType2githubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐOnsaleType(ctx context.Context, sel ast.SelectionSet, v model.OnsaleType) graphql.Marshaler {
 	return v
 }
 
@@ -7314,16 +7724,16 @@ func (ec *executionContext) marshalOLink2ᚖgithubᚗcomᚋhumgalᚋartᚑserver
 	return ec._Link(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOOnsaleCoin2ᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐOnsaleCoin(ctx context.Context, v interface{}) (*model.OnsaleCoin, error) {
+func (ec *executionContext) unmarshalOOnsaleType2ᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐOnsaleType(ctx context.Context, v interface{}) (*model.OnsaleType, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var res = new(model.OnsaleCoin)
+	var res = new(model.OnsaleType)
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOOnsaleCoin2ᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐOnsaleCoin(ctx context.Context, sel ast.SelectionSet, v *model.OnsaleCoin) graphql.Marshaler {
+func (ec *executionContext) marshalOOnsaleType2ᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐOnsaleType(ctx context.Context, sel ast.SelectionSet, v *model.OnsaleType) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -7593,6 +8003,14 @@ func (ec *executionContext) marshalO__Type2ᚖgithubᚗcomᚋ99designsᚋgqlgen�
 		return graphql.Null
 	}
 	return ec.___Type(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOpayParam2ᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐPayParam(ctx context.Context, v interface{}) (*model.PayParam, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputpayParam(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOuploadItem2ᚕᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐUploadItemᚄ(ctx context.Context, v interface{}) ([]*model.UploadItem, error) {
