@@ -39,7 +39,7 @@ type CollectionParm struct {
 
 type Creator struct {
 	UserID      string  `json:"userId"`
-	Name        string  `json:"name"`
+	Username    string  `json:"username"`
 	Description *string `json:"description"`
 	Followers   []*int  `json:"followers"`
 	FollowerNum *int    `json:"followerNum"`
@@ -70,6 +70,18 @@ type ItemPrice struct {
 type Link struct {
 	Type LinkType `json:"type"`
 	URL  string   `json:"url"`
+}
+
+type Login struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+type NewUser struct {
+	Username string  `json:"username"`
+	Password string  `json:"password"`
+	Email    *string `json:"email"`
+	Phone    *string `json:"phone"`
 }
 
 type PayParam struct {
@@ -106,6 +118,10 @@ type PriceRange struct {
 	Min float64 `json:"min"`
 }
 
+type RefreshTokenInput struct {
+	Token string `json:"token"`
+}
+
 type SearchParm struct {
 	Param   string      `json:"param"`
 	Type    *SearchType `json:"type"`
@@ -115,10 +131,15 @@ type SearchParm struct {
 	Creator *string     `json:"creator"`
 }
 
+type SubscriptionEvent struct {
+	Payments []*Payment `json:"payments"`
+	Bids     []*Bid     `json:"bids"`
+}
+
 type User struct {
 	ID         string      `json:"id"`
-	Name       string      `json:"name"`
-	UserName   string      `json:"userName"`
+	Realname   string      `json:"realname"`
+	Username   string      `json:"username"`
 	Photo      *string     `json:"photo"`
 	Phone      *string     `json:"phone"`
 	Company    *string     `json:"company"`
@@ -130,11 +151,6 @@ type User struct {
 	VerifyName *string     `json:"verifyName"`
 	IsCreator  *bool       `json:"isCreator"`
 	Links      []*Link     `json:"links"`
-}
-
-type SubscriptionEvent struct {
-	Payments []*Payment `json:"payments"`
-	Bids     []*Bid     `json:"bids"`
 }
 
 type UploadItem struct {

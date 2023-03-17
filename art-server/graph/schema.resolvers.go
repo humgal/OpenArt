@@ -11,6 +11,21 @@ import (
 	"github.com/humgal/art-server/graph/model"
 )
 
+// NewUser is the resolver for the newUser field.
+func (r *mutationResolver) NewUser(ctx context.Context, user *model.NewUser) (string, error) {
+	panic(fmt.Errorf("not implemented: NewUser - newUser"))
+}
+
+// Login is the resolver for the login field.
+func (r *mutationResolver) Login(ctx context.Context, input model.Login) (string, error) {
+	panic(fmt.Errorf("not implemented: Login - login"))
+}
+
+// RefreshToken is the resolver for the refreshToken field.
+func (r *mutationResolver) RefreshToken(ctx context.Context, input model.RefreshTokenInput) (string, error) {
+	panic(fmt.Errorf("not implemented: RefreshToken - refreshToken"))
+}
+
 // PlaceBid is the resolver for the placeBid field.
 func (r *mutationResolver) PlaceBid(ctx context.Context, bid *model.BidParm) (*model.Bid, error) {
 	panic(fmt.Errorf("not implemented: PlaceBid - placeBid"))

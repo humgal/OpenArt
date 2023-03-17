@@ -4,8 +4,8 @@
 
 type User {
   id: ID!
-  name: String!
-  userName: String!
+  realname: String!
+  username: String!
   photo: String
   phone: String
   company: String
@@ -17,6 +17,13 @@ type User {
   verifyName: String
   isCreator: Boolean
   links: [Link]
+}
+
+input NewUser {
+    username: String!
+    password: String!
+    email: String 
+    phone: String
 }
 
 enum VerifyType {
@@ -191,17 +198,25 @@ input CollectionParm {
 
 type Creator {
   userId: ID!
-  name: String!
+  username: String!
   description: String
   followers: [Int]
   followerNum: Int
 }
 
-type subscriptionEvent {
+type SubscriptionEvent {
   payments: [Payment]
   bids: [Bid]
 }
 
+input Login {
+    username: String!
+    password: String!
+}
+
+input RefreshTokenInput{
+    token: String!
+}
 
 type Query {
   searchItems(param:SearchParm!): [Item]
@@ -215,6 +230,9 @@ type Query {
 
 
 type Mutation {
+  newUser(user:NewUser): String!
+  login(input: Login!): String!
+  refreshToken(input: RefreshTokenInput!): String!
   placeBid(bid: BidParm): Bid
   uploadArt(items:[uploadItem!]): [Item!]!
   setPrice(param:PriceParam): [Item!]!
@@ -226,6 +244,6 @@ type Mutation {
 
 
 type Subscription {
-  subscriptionPayment(itemid: String) : subscriptionEvent
+  subscriptionPayment(itemid: String) : SubscriptionEvent
   
 }
