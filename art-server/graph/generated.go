@@ -133,7 +133,6 @@ type ComplexityRoot struct {
 	}
 
 	Subscription struct {
-		SubscriptionBid     func(childComplexity int, itemid *string) int
 		SubscriptionPayment func(childComplexity int, itemid *string) int
 	}
 
@@ -152,6 +151,11 @@ type ComplexityRoot struct {
 		UserName   func(childComplexity int) int
 		VerifyName func(childComplexity int) int
 		VerifyType func(childComplexity int) int
+	}
+
+	SubscriptionEvent struct {
+		Bids     func(childComplexity int) int
+		Payments func(childComplexity int) int
 	}
 
 	Wallet struct {
@@ -179,8 +183,7 @@ type QueryResolver interface {
 	FeatureCreator(ctx context.Context, typeArg int) ([]*model.Creator, error)
 }
 type SubscriptionResolver interface {
-	SubscriptionPayment(ctx context.Context, itemid *string) (<-chan []*model.Payment, error)
-	SubscriptionBid(ctx context.Context, itemid *string) (<-chan []*model.Bid, error)
+	SubscriptionPayment(ctx context.Context, itemid *string) (<-chan *model.SubscriptionEvent, error)
 }
 
 type executableSchema struct {
@@ -681,18 +684,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.User(childComplexity, args["id"].(string)), true
 
-	case "Subscription.subscriptionBid":
-		if e.complexity.Subscription.SubscriptionBid == nil {
-			break
-		}
-
-		args, err := ec.field_Subscription_subscriptionBid_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Subscription.SubscriptionBid(childComplexity, args["itemid"].(*string)), true
-
 	case "Subscription.subscriptionPayment":
 		if e.complexity.Subscription.SubscriptionPayment == nil {
 			break
@@ -802,6 +793,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.User.VerifyType(childComplexity), true
+
+	case "subscriptionEvent.bids":
+		if e.complexity.SubscriptionEvent.Bids == nil {
+			break
+		}
+
+		return e.complexity.SubscriptionEvent.Bids(childComplexity), true
+
+	case "subscriptionEvent.payments":
+		if e.complexity.SubscriptionEvent.Payments == nil {
+			break
+		}
+
+		return e.complexity.SubscriptionEvent.Payments(childComplexity), true
 
 	case "wallet.pubToken":
 		if e.complexity.Wallet.PubToken == nil {
@@ -1168,21 +1173,6 @@ func (ec *executionContext) field_Query_user_args(ctx context.Context, rawArgs m
 		}
 	}
 	args["id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Subscription_subscriptionBid_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *string
-	if tmp, ok := rawArgs["itemid"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("itemid"))
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["itemid"] = arg0
 	return args, nil
 }
 
@@ -4323,7 +4313,7 @@ func (ec *executionContext) _Subscription_subscriptionPayment(ctx context.Contex
 	}
 	return func(ctx context.Context) graphql.Marshaler {
 		select {
-		case res, ok := <-resTmp.(<-chan []*model.Payment):
+		case res, ok := <-resTmp.(<-chan *model.SubscriptionEvent):
 			if !ok {
 				return nil
 			}
@@ -4331,7 +4321,7 @@ func (ec *executionContext) _Subscription_subscriptionPayment(ctx context.Contex
 				w.Write([]byte{'{'})
 				graphql.MarshalString(field.Alias).MarshalGQL(w)
 				w.Write([]byte{':'})
-				ec.marshalOPayment2ᚕᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐPayment(ctx, field.Selections, res).MarshalGQL(w)
+				ec.marshalOsubscriptionEvent2ᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐSubscriptionEvent(ctx, field.Selections, res).MarshalGQL(w)
 				w.Write([]byte{'}'})
 			})
 		case <-ctx.Done():
@@ -4348,26 +4338,12 @@ func (ec *executionContext) fieldContext_Subscription_subscriptionPayment(ctx co
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "itemId":
-				return ec.fieldContext_Payment_itemId(ctx, field)
-			case "onsaleType":
-				return ec.fieldContext_Payment_onsaleType(ctx, field)
-			case "price":
-				return ec.fieldContext_Payment_price(ctx, field)
-			case "serviceFee":
-				return ec.fieldContext_Payment_serviceFee(ctx, field)
-			case "createor":
-				return ec.fieldContext_Payment_createor(ctx, field)
-			case "createDate":
-				return ec.fieldContext_Payment_createDate(ctx, field)
-			case "payStatus":
-				return ec.fieldContext_Payment_payStatus(ctx, field)
-			case "payUser":
-				return ec.fieldContext_Payment_payUser(ctx, field)
-			case "payDate":
-				return ec.fieldContext_Payment_payDate(ctx, field)
+			case "payments":
+				return ec.fieldContext_subscriptionEvent_payments(ctx, field)
+			case "bids":
+				return ec.fieldContext_subscriptionEvent_bids(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Payment", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type subscriptionEvent", field.Name)
 		},
 	}
 	defer func() {
@@ -4378,90 +4354,6 @@ func (ec *executionContext) fieldContext_Subscription_subscriptionPayment(ctx co
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Subscription_subscriptionPayment_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Subscription_subscriptionBid(ctx context.Context, field graphql.CollectedField) (ret func(ctx context.Context) graphql.Marshaler) {
-	fc, err := ec.fieldContext_Subscription_subscriptionBid(ctx, field)
-	if err != nil {
-		return nil
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = nil
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Subscription().SubscriptionBid(rctx, fc.Args["itemid"].(*string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return nil
-	}
-	if resTmp == nil {
-		return nil
-	}
-	return func(ctx context.Context) graphql.Marshaler {
-		select {
-		case res, ok := <-resTmp.(<-chan []*model.Bid):
-			if !ok {
-				return nil
-			}
-			return graphql.WriterFunc(func(w io.Writer) {
-				w.Write([]byte{'{'})
-				graphql.MarshalString(field.Alias).MarshalGQL(w)
-				w.Write([]byte{':'})
-				ec.marshalOBid2ᚕᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐBid(ctx, field.Selections, res).MarshalGQL(w)
-				w.Write([]byte{'}'})
-			})
-		case <-ctx.Done():
-			return nil
-		}
-	}
-}
-
-func (ec *executionContext) fieldContext_Subscription_subscriptionBid(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Subscription",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "temId":
-				return ec.fieldContext_Bid_temId(ctx, field)
-			case "serviceFee":
-				return ec.fieldContext_Bid_serviceFee(ctx, field)
-			case "total":
-				return ec.fieldContext_Bid_total(ctx, field)
-			case "user":
-				return ec.fieldContext_Bid_user(ctx, field)
-			case "username":
-				return ec.fieldContext_Bid_username(ctx, field)
-			case "bidDate":
-				return ec.fieldContext_Bid_bidDate(ctx, field)
-			case "itemPriceType":
-				return ec.fieldContext_Bid_itemPriceType(ctx, field)
-			case "bidEndDate":
-				return ec.fieldContext_Bid_bidEndDate(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Bid", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Subscription_subscriptionBid_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -6826,6 +6718,126 @@ func (ec *executionContext) fieldContext___Type_specifiedByURL(ctx context.Conte
 	return fc, nil
 }
 
+func (ec *executionContext) _subscriptionEvent_payments(ctx context.Context, field graphql.CollectedField, obj *model.SubscriptionEvent) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_subscriptionEvent_payments(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Payments, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Payment)
+	fc.Result = res
+	return ec.marshalOPayment2ᚕᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐPayment(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_subscriptionEvent_payments(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "subscriptionEvent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "itemId":
+				return ec.fieldContext_Payment_itemId(ctx, field)
+			case "onsaleType":
+				return ec.fieldContext_Payment_onsaleType(ctx, field)
+			case "price":
+				return ec.fieldContext_Payment_price(ctx, field)
+			case "serviceFee":
+				return ec.fieldContext_Payment_serviceFee(ctx, field)
+			case "createor":
+				return ec.fieldContext_Payment_createor(ctx, field)
+			case "createDate":
+				return ec.fieldContext_Payment_createDate(ctx, field)
+			case "payStatus":
+				return ec.fieldContext_Payment_payStatus(ctx, field)
+			case "payUser":
+				return ec.fieldContext_Payment_payUser(ctx, field)
+			case "payDate":
+				return ec.fieldContext_Payment_payDate(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Payment", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _subscriptionEvent_bids(ctx context.Context, field graphql.CollectedField, obj *model.SubscriptionEvent) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_subscriptionEvent_bids(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Bids, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Bid)
+	fc.Result = res
+	return ec.marshalOBid2ᚕᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐBid(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_subscriptionEvent_bids(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "subscriptionEvent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "temId":
+				return ec.fieldContext_Bid_temId(ctx, field)
+			case "serviceFee":
+				return ec.fieldContext_Bid_serviceFee(ctx, field)
+			case "total":
+				return ec.fieldContext_Bid_total(ctx, field)
+			case "user":
+				return ec.fieldContext_Bid_user(ctx, field)
+			case "username":
+				return ec.fieldContext_Bid_username(ctx, field)
+			case "bidDate":
+				return ec.fieldContext_Bid_bidDate(ctx, field)
+			case "itemPriceType":
+				return ec.fieldContext_Bid_itemPriceType(ctx, field)
+			case "bidEndDate":
+				return ec.fieldContext_Bid_bidEndDate(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Bid", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _wallet_type(ctx context.Context, field graphql.CollectedField, obj *model.Wallet) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_wallet_type(ctx, field)
 	if err != nil {
@@ -8001,8 +8013,6 @@ func (ec *executionContext) _Subscription(ctx context.Context, sel ast.Selection
 	switch fields[0].Name {
 	case "subscriptionPayment":
 		return ec._Subscription_subscriptionPayment(ctx, fields[0])
-	case "subscriptionBid":
-		return ec._Subscription_subscriptionBid(ctx, fields[0])
 	default:
 		panic("unknown field " + strconv.Quote(fields[0].Name))
 	}
@@ -8396,6 +8406,35 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 		case "specifiedByURL":
 
 			out.Values[i] = ec.___Type_specifiedByURL(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var subscriptionEventImplementors = []string{"subscriptionEvent"}
+
+func (ec *executionContext) _subscriptionEvent(ctx context.Context, sel ast.SelectionSet, obj *model.SubscriptionEvent) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, subscriptionEventImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("subscriptionEvent")
+		case "payments":
+
+			out.Values[i] = ec._subscriptionEvent_payments(ctx, field, obj)
+
+		case "bids":
+
+			out.Values[i] = ec._subscriptionEvent_bids(ctx, field, obj)
 
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -9646,6 +9685,13 @@ func (ec *executionContext) marshalO__Type2ᚖgithubᚗcomᚋ99designsᚋgqlgen�
 		return graphql.Null
 	}
 	return ec.___Type(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOsubscriptionEvent2ᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐSubscriptionEvent(ctx context.Context, sel ast.SelectionSet, v *model.SubscriptionEvent) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._subscriptionEvent(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOuploadItem2ᚕᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐUploadItemᚄ(ctx context.Context, v interface{}) ([]*model.UploadItem, error) {

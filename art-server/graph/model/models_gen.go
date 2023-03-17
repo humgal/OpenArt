@@ -132,6 +132,11 @@ type User struct {
 	Links      []*Link     `json:"links"`
 }
 
+type SubscriptionEvent struct {
+	Payments []*Payment `json:"payments"`
+	Bids     []*Bid     `json:"bids"`
+}
+
 type UploadItem struct {
 	Name        string   `json:"name"`
 	Tag         *string  `json:"tag"`

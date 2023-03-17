@@ -82,13 +82,8 @@ func (r *queryResolver) FeatureCreator(ctx context.Context, typeArg int) ([]*mod
 }
 
 // SubscriptionPayment is the resolver for the subscriptionPayment field.
-func (r *subscriptionResolver) SubscriptionPayment(ctx context.Context, itemid *string) (<-chan []*model.Payment, error) {
+func (r *subscriptionResolver) SubscriptionPayment(ctx context.Context, itemid *string) (<-chan *model.SubscriptionEvent, error) {
 	panic(fmt.Errorf("not implemented: SubscriptionPayment - subscriptionPayment"))
-}
-
-// SubscriptionBid is the resolver for the subscriptionBid field.
-func (r *subscriptionResolver) SubscriptionBid(ctx context.Context, itemid *string) (<-chan []*model.Bid, error) {
-	panic(fmt.Errorf("not implemented: SubscriptionBid - subscriptionBid"))
 }
 
 // Mutation returns MutationResolver implementation.
@@ -103,3 +98,13 @@ func (r *Resolver) Subscription() SubscriptionResolver { return &subscriptionRes
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type subscriptionResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//     it when you're done.
+//   - You have helper methods in this file. Move them out to keep these resolver files clean.
+func (r *subscriptionResolver) SubscriptionBid(ctx context.Context, itemid *string) (<-chan []*model.Bid, error) {
+	panic(fmt.Errorf("not implemented: SubscriptionBid - subscriptionBid"))
+}

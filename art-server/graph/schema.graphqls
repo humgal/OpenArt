@@ -197,6 +197,10 @@ type Creator {
   followerNum: Int
 }
 
+type subscriptionEvent {
+  payments: [Payment]
+  bids: [Bid]
+}
 
 
 type Query {
@@ -222,6 +226,6 @@ type Mutation {
 
 
 type Subscription {
-  subscriptionPayment(itemid: String) : [Payment]
-  subscriptionBid(itemid: String): [Bid]
+  subscriptionPayment(itemid: String) : subscriptionEvent
+  
 }
