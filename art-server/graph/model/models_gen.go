@@ -9,10 +9,19 @@ import (
 )
 
 type Bid struct {
-	ItemID     int      `json:"itemId"`
-	Balance    float64  `json:"balance"`
-	ServiceFee *float64 `json:"serviceFee"`
-	Total      *float64 `json:"total"`
+	TemID         int           `json:"temId"`
+	ServiceFee    float64       `json:"serviceFee"`
+	Total         float64       `json:"total"`
+	User          string        `json:"user"`
+	Username      string        `json:"username"`
+	BidDate       string        `json:"bidDate"`
+	ItemPriceType ItemPriceType `json:"itemPriceType"`
+	BidEndDate    *string       `json:"bidEndDate"`
+}
+
+type BidParm struct {
+	ItemID int     `json:"itemId"`
+	Total  float64 `json:"total"`
 }
 
 type Collection struct {
@@ -49,16 +58,47 @@ type Item struct {
 }
 
 type ItemPrice struct {
-	Type           int        `json:"type"`
-	Onsale         OnsaleType `json:"onsale"`
-	InitPrice      float64    `json:"initPrice"`
-	StartDate      *string    `json:"startDate"`
-	ExpirationDate *string    `json:"expirationDate"`
+	ItemID         string        `json:"itemId"`
+	ItemPriceType  ItemPriceType `json:"itemPriceType"`
+	Onsale         OnsaleType    `json:"onsale"`
+	InitPrice      float64       `json:"initPrice"`
+	ServiceFee     float64       `json:"serviceFee"`
+	StartDate      *string       `json:"startDate"`
+	ExpirationDate *string       `json:"expirationDate"`
 }
 
 type Link struct {
 	Type LinkType `json:"type"`
 	URL  string   `json:"url"`
+}
+
+type PayParam struct {
+	ID         string     `json:"id"`
+	OnsaleType OnsaleType `json:"onsaleType"`
+	Balance    float64    `json:"balance"`
+	ServiceFee float64    `json:"serviceFee"`
+	PayAmount  float64    `json:"payAmount"`
+}
+
+type Payment struct {
+	ItemID     int     `json:"itemId"`
+	OnsaleType int     `json:"onsaleType"`
+	Price      float64 `json:"price"`
+	ServiceFee float64 `json:"serviceFee"`
+	Createor   string  `json:"createor"`
+	CreateDate *string `json:"createDate"`
+	PayStatus  int     `json:"payStatus"`
+	PayUser    *string `json:"payUser"`
+	PayDate    *string `json:"payDate"`
+}
+
+type PriceParam struct {
+	ItemID         string        `json:"itemId"`
+	ItemPriceType  ItemPriceType `json:"itemPriceType"`
+	Onsale         OnsaleType    `json:"onsale"`
+	InitPrice      float64       `json:"initPrice"`
+	StartDate      *string       `json:"startDate"`
+	ExpirationDate *string       `json:"expirationDate"`
 }
 
 type PriceRange struct {
@@ -90,21 +130,6 @@ type User struct {
 	VerifyName *string     `json:"verifyName"`
 	IsCreator  *bool       `json:"isCreator"`
 	Links      []*Link     `json:"links"`
-}
-
-type PayParam struct {
-	ID         string     `json:"id"`
-	OnsaleType OnsaleType `json:"onsaleType"`
-	Balance    float64    `json:"balance"`
-	ServiceFee float64    `json:"serviceFee"`
-	PayAmount  float64    `json:"payAmount"`
-}
-
-type Payment struct {
-	ItemID  int     `json:"itemId"`
-	PayType int     `json:"payType"`
-	Price   float64 `json:"price"`
-	PayDate *string `json:"payDate"`
 }
 
 type UploadItem struct {
@@ -166,6 +191,47 @@ func (e *Blockchain) UnmarshalGQL(v interface{}) error {
 }
 
 func (e Blockchain) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type ItemPriceType string
+
+const (
+	ItemPriceTypeFixed   ItemPriceType = "FIXED"
+	ItemPriceTypeAuction ItemPriceType = "AUCTION"
+)
+
+var AllItemPriceType = []ItemPriceType{
+	ItemPriceTypeFixed,
+	ItemPriceTypeAuction,
+}
+
+func (e ItemPriceType) IsValid() bool {
+	switch e {
+	case ItemPriceTypeFixed, ItemPriceTypeAuction:
+		return true
+	}
+	return false
+}
+
+func (e ItemPriceType) String() string {
+	return string(e)
+}
+
+func (e *ItemPriceType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ItemPriceType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ItemPriceType", str)
+	}
+	return nil
+}
+
+func (e ItemPriceType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

@@ -52,10 +52,26 @@ type Item {
   createDate: Date
 }
 
+enum ItemPriceType {
+  FIXED
+  AUCTION
+}
 
 
 type ItemPrice {
-  type: Int!
+  itemId: ID!
+  itemPriceType: ItemPriceType!
+  onsale: OnsaleType!
+  initPrice: Float!
+  serviceFee: Float!
+  startDate: Date
+  expirationDate: Date
+
+}
+
+input PriceParam {
+  itemId: ID!
+  itemPriceType: ItemPriceType!
   onsale: OnsaleType!
   initPrice: Float!
   startDate: Date
@@ -82,21 +98,42 @@ type wallet {
   pubToken: String!
 }
 
-type payment {
+input PayParam {
+  id: ID!
+  onsaleType: OnsaleType!
+  balance: Float!
+  serviceFee: Float!
+  payAmount: Float!
+}
+
+type Payment {
   itemId: Int!
-  payType: Int!
+  onsaleType: Int!
   price: Float!
+  serviceFee: Float!
+  createor: String!
+  createDate: Date
+  payStatus: Int!
+  payUser: String
   payDate: Date
   
 }
 
-input Bid {
+input BidParm {
   itemId: Int!
-  balance: Float!
-  serviceFee: Float
-  total: Float
+  total: Float!
 }
 
+type Bid{
+  temId: Int!
+  serviceFee: Float!
+  total: Float !
+  user: ID!
+  username: String!
+  bidDate: Date!
+  itemPriceType: ItemPriceType!
+  bidEndDate: Date
+}
 
 
 enum SearchType {
@@ -160,29 +197,31 @@ type Creator {
   followerNum: Int
 }
 
-input payParam {
-  id: ID!
-  onsaleType: OnsaleType!
-  balance: Float!
-  serviceFee: Float!
-  payAmount: Float!
-}
+
 
 type Query {
   searchItems(param:SearchParm!): [Item]
   user(id:ID!): User
   item(id:ID!): Item
   collection(createor:String!):Collection
-  items(createor:String,):[Item]
+  items(createor:String,ids:[ID!]):[Item]
   createor(name:String):Creator
   featureCreator(type:Int!):[Creator]
 }
 
 
 type Mutation {
-  placeBid(bid: Bid): String
+  placeBid(bid: BidParm): Bid
   uploadArt(items:[uploadItem!]): [Item!]!
-  mintArt(items:[uploadItem!]): [Item!]!
+  setPrice(param:PriceParam): [Item!]!
+  mintArt(items:[ID!]): [Item!]!
   createCollection(param: CollectionParm!): Collection
-  checkout(param:payParam): String
+  checkout(param:PayParam): String
+  connectWallet(userId:ID!,type:walletType!):wallet!
+}
+
+
+type Subscription {
+  subscriptionPayment(itemid: String) : [Payment]
+  subscriptionBid(itemid: String): [Bid]
 }

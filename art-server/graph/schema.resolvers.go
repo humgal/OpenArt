@@ -12,7 +12,7 @@ import (
 )
 
 // PlaceBid is the resolver for the placeBid field.
-func (r *mutationResolver) PlaceBid(ctx context.Context, bid *model.Bid) (*string, error) {
+func (r *mutationResolver) PlaceBid(ctx context.Context, bid *model.BidParm) (*model.Bid, error) {
 	panic(fmt.Errorf("not implemented: PlaceBid - placeBid"))
 }
 
@@ -21,8 +21,13 @@ func (r *mutationResolver) UploadArt(ctx context.Context, items []*model.UploadI
 	panic(fmt.Errorf("not implemented: UploadArt - uploadArt"))
 }
 
+// SetPrice is the resolver for the setPrice field.
+func (r *mutationResolver) SetPrice(ctx context.Context, param *model.PriceParam) ([]*model.Item, error) {
+	panic(fmt.Errorf("not implemented: SetPrice - setPrice"))
+}
+
 // MintArt is the resolver for the mintArt field.
-func (r *mutationResolver) MintArt(ctx context.Context, items []*model.UploadItem) ([]*model.Item, error) {
+func (r *mutationResolver) MintArt(ctx context.Context, items []string) ([]*model.Item, error) {
 	panic(fmt.Errorf("not implemented: MintArt - mintArt"))
 }
 
@@ -34,6 +39,11 @@ func (r *mutationResolver) CreateCollection(ctx context.Context, param model.Col
 // Checkout is the resolver for the checkout field.
 func (r *mutationResolver) Checkout(ctx context.Context, param *model.PayParam) (*string, error) {
 	panic(fmt.Errorf("not implemented: Checkout - checkout"))
+}
+
+// ConnectWallet is the resolver for the connectWallet field.
+func (r *mutationResolver) ConnectWallet(ctx context.Context, userID string, typeArg model.WalletType) (*model.Wallet, error) {
+	panic(fmt.Errorf("not implemented: ConnectWallet - connectWallet"))
 }
 
 // SearchItems is the resolver for the searchItems field.
@@ -57,7 +67,7 @@ func (r *queryResolver) Collection(ctx context.Context, createor string) (*model
 }
 
 // Items is the resolver for the items field.
-func (r *queryResolver) Items(ctx context.Context, createor *string) ([]*model.Item, error) {
+func (r *queryResolver) Items(ctx context.Context, createor *string, ids []string) ([]*model.Item, error) {
 	panic(fmt.Errorf("not implemented: Items - items"))
 }
 
@@ -71,11 +81,25 @@ func (r *queryResolver) FeatureCreator(ctx context.Context, typeArg int) ([]*mod
 	panic(fmt.Errorf("not implemented: FeatureCreator - featureCreator"))
 }
 
+// SubscriptionPayment is the resolver for the subscriptionPayment field.
+func (r *subscriptionResolver) SubscriptionPayment(ctx context.Context, itemid *string) (<-chan []*model.Payment, error) {
+	panic(fmt.Errorf("not implemented: SubscriptionPayment - subscriptionPayment"))
+}
+
+// SubscriptionBid is the resolver for the subscriptionBid field.
+func (r *subscriptionResolver) SubscriptionBid(ctx context.Context, itemid *string) (<-chan []*model.Bid, error) {
+	panic(fmt.Errorf("not implemented: SubscriptionBid - subscriptionBid"))
+}
+
 // Mutation returns MutationResolver implementation.
 func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
 
 // Query returns QueryResolver implementation.
 func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
+// Subscription returns SubscriptionResolver implementation.
+func (r *Resolver) Subscription() SubscriptionResolver { return &subscriptionResolver{r} }
+
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
+type subscriptionResolver struct{ *Resolver }
