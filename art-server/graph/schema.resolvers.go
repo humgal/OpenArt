@@ -16,9 +16,44 @@ func (r *mutationResolver) PlaceBid(ctx context.Context, bid *model.Bid) (*strin
 	panic(fmt.Errorf("not implemented: PlaceBid - placeBid"))
 }
 
-// Items is the resolver for the items field.
-func (r *queryResolver) Items(ctx context.Context, param model.SearchParm) ([]*model.Item, error) {
-	panic(fmt.Errorf("not implemented: Items - items"))
+// UploadArt is the resolver for the uploadArt field.
+func (r *mutationResolver) UploadArt(ctx context.Context, items []*model.UploadItem) ([]*model.Item, error) {
+	panic(fmt.Errorf("not implemented: UploadArt - uploadArt"))
+}
+
+// CreateCollection is the resolver for the createCollection field.
+func (r *mutationResolver) CreateCollection(ctx context.Context, param model.CollectionParm) (*model.Collection, error) {
+	panic(fmt.Errorf("not implemented: CreateCollection - createCollection"))
+}
+
+// SearchItems is the resolver for the searchItems field.
+func (r *queryResolver) SearchItems(ctx context.Context, param model.SearchParm) ([]*model.Item, error) {
+	panic(fmt.Errorf("not implemented: SearchItems - searchItems"))
+}
+
+// User is the resolver for the user field.
+func (r *queryResolver) User(ctx context.Context, id string) (*model.User, error) {
+	panic(fmt.Errorf("not implemented: User - user"))
+}
+
+// ItemDetail is the resolver for the itemDetail field.
+func (r *queryResolver) ItemDetail(ctx context.Context, id string) (*model.Item, error) {
+	panic(fmt.Errorf("not implemented: ItemDetail - itemDetail"))
+}
+
+// Collection is the resolver for the collection field.
+func (r *queryResolver) Collection(ctx context.Context) (*model.Collection, error) {
+	panic(fmt.Errorf("not implemented: Collection - collection"))
+}
+
+// DiscoverCreator is the resolver for the discoverCreator field.
+func (r *queryResolver) DiscoverCreator(ctx context.Context, typeArg *int) ([]*model.Creator, error) {
+	panic(fmt.Errorf("not implemented: DiscoverCreator - discoverCreator"))
+}
+
+// CreateorProfile is the resolver for the createorProfile field.
+func (r *queryResolver) CreateorProfile(ctx context.Context, name *string) (model.CreateorProfile, error) {
+	panic(fmt.Errorf("not implemented: CreateorProfile - createorProfile"))
 }
 
 // Mutation returns MutationResolver implementation.
@@ -36,8 +71,8 @@ type queryResolver struct{ *Resolver }
 //   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
 //     it when you're done.
 //   - You have helper methods in this file. Move them out to keep these resolver files clean.
-func (r *mutationResolver) CreateTodo(ctx context.Context, input model.NewTodo) (string, error) {
-	panic(fmt.Errorf("not implemented: CreateTodo - createTodo"))
+func (r *queryResolver) Items(ctx context.Context, param model.SearchParm) ([]*model.Item, error) {
+	panic(fmt.Errorf("not implemented: Items - items"))
 }
 func (r *queryResolver) PlaceBid(ctx context.Context, bid *model.Bid) (*string, error) {
 	panic(fmt.Errorf("not implemented: PlaceBid - placeBid"))

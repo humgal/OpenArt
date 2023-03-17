@@ -8,6 +8,10 @@ import (
 	"strconv"
 )
 
+type CreateorProfile interface {
+	IsCreateorProfile()
+}
+
 type Bid struct {
 	ItemID     int      `json:"itemId"`
 	Balance    float64  `json:"balance"`
@@ -20,7 +24,22 @@ type Collection struct {
 	Name       string  `json:"name"`
 	Items      []*Item `json:"items"`
 	CreateDate *string `json:"createDate"`
+	Createor   *string `json:"createor"`
 }
+
+type CollectionParm struct {
+	Name    *string `json:"name"`
+	Creator string  `json:"creator"`
+}
+
+type Creator struct {
+	Name        *string `json:"name"`
+	Description *string `json:"description"`
+	Followers   []*int  `json:"followers"`
+	FollowerNum *int    `json:"followerNum"`
+}
+
+func (Creator) IsCreateorProfile() {}
 
 type Item struct {
 	ID          string     `json:"id"`
@@ -30,7 +49,6 @@ type Item struct {
 	UploadURL   string     `json:"uploadUrl"`
 	SaleStatus  int        `json:"saleStatus"`
 	Price       *ItemPrice `json:"price"`
-	CreatorID   int        `json:"creatorId"`
 	Creator     string     `json:"creator"`
 	CreateDate  *string    `json:"createDate"`
 }
@@ -43,14 +61,15 @@ type ItemPrice struct {
 	ExpirationDate *string    `json:"expirationDate"`
 }
 
+type Items struct {
+	Items []*Item `json:"items"`
+}
+
+func (Items) IsCreateorProfile() {}
+
 type Link struct {
 	Type LinkType `json:"type"`
 	URL  string   `json:"url"`
-}
-
-type NewTodo struct {
-	Text   string `json:"text"`
-	UserID string `json:"userId"`
 }
 
 type PriceRange struct {
@@ -90,9 +109,66 @@ type Payment struct {
 	PayDate *string `json:"payDate"`
 }
 
+type UploadItem struct {
+	Name        string   `json:"name"`
+	Tag         *string  `json:"tag"`
+	Description *string  `json:"description"`
+	UploadURL   []string `json:"uploadUrl"`
+	Creator     string   `json:"creator"`
+	SaleStatus  int      `json:"saleStatus"`
+	Collection  *string  `json:"collection"`
+}
+
 type Wallet struct {
 	Type     WalletType `json:"type"`
 	PubToken string     `json:"pubToken"`
+}
+
+type Blockchain string
+
+const (
+	BlockchainEthereum Blockchain = "ETHEREUM"
+	BlockchainMatic    Blockchain = "MATIC"
+	BlockchainKlaytn   Blockchain = "KLAYTN"
+	BlockchainSolana   Blockchain = "SOLANA"
+	BlockchainBnb      Blockchain = "BNB"
+)
+
+var AllBlockchain = []Blockchain{
+	BlockchainEthereum,
+	BlockchainMatic,
+	BlockchainKlaytn,
+	BlockchainSolana,
+	BlockchainBnb,
+}
+
+func (e Blockchain) IsValid() bool {
+	switch e {
+	case BlockchainEthereum, BlockchainMatic, BlockchainKlaytn, BlockchainSolana, BlockchainBnb:
+		return true
+	}
+	return false
+}
+
+func (e Blockchain) String() string {
+	return string(e)
+}
+
+func (e *Blockchain) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = Blockchain(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid Blockchain", str)
+	}
+	return nil
+}
+
+func (e Blockchain) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
 type LinkType string
@@ -141,6 +217,49 @@ func (e *LinkType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e LinkType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type OnsaleCoin string
+
+const (
+	OnsaleCoinEth   OnsaleCoin = "ETH"
+	OnsaleCoinWeth  OnsaleCoin = "WETH"
+	OnsaleCoinOxBtc OnsaleCoin = "oxBTC"
+)
+
+var AllOnsaleCoin = []OnsaleCoin{
+	OnsaleCoinEth,
+	OnsaleCoinWeth,
+	OnsaleCoinOxBtc,
+}
+
+func (e OnsaleCoin) IsValid() bool {
+	switch e {
+	case OnsaleCoinEth, OnsaleCoinWeth, OnsaleCoinOxBtc:
+		return true
+	}
+	return false
+}
+
+func (e OnsaleCoin) String() string {
+	return string(e)
+}
+
+func (e *OnsaleCoin) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = OnsaleCoin(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid OnsaleCoin", str)
+	}
+	return nil
+}
+
+func (e OnsaleCoin) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
@@ -229,96 +348,6 @@ func (e *VerifyType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e VerifyType) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-type Blockchain string
-
-const (
-	BlockchainEthereum Blockchain = "ETHEREUM"
-	BlockchainMatic    Blockchain = "MATIC"
-	BlockchainKlaytn   Blockchain = "KLAYTN"
-	BlockchainSolana   Blockchain = "SOLANA"
-	BlockchainBnb      Blockchain = "BNB"
-)
-
-var AllBlockchain = []Blockchain{
-	BlockchainEthereum,
-	BlockchainMatic,
-	BlockchainKlaytn,
-	BlockchainSolana,
-	BlockchainBnb,
-}
-
-func (e Blockchain) IsValid() bool {
-	switch e {
-	case BlockchainEthereum, BlockchainMatic, BlockchainKlaytn, BlockchainSolana, BlockchainBnb:
-		return true
-	}
-	return false
-}
-
-func (e Blockchain) String() string {
-	return string(e)
-}
-
-func (e *Blockchain) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = Blockchain(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid blockchain", str)
-	}
-	return nil
-}
-
-func (e Blockchain) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-type OnsaleCoin string
-
-const (
-	OnsaleCoinEth   OnsaleCoin = "ETH"
-	OnsaleCoinWeth  OnsaleCoin = "WETH"
-	OnsaleCoinOxBtc OnsaleCoin = "oxBTC"
-)
-
-var AllOnsaleCoin = []OnsaleCoin{
-	OnsaleCoinEth,
-	OnsaleCoinWeth,
-	OnsaleCoinOxBtc,
-}
-
-func (e OnsaleCoin) IsValid() bool {
-	switch e {
-	case OnsaleCoinEth, OnsaleCoinWeth, OnsaleCoinOxBtc:
-		return true
-	}
-	return false
-}
-
-func (e OnsaleCoin) String() string {
-	return string(e)
-}
-
-func (e *OnsaleCoin) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = OnsaleCoin(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid onsaleCoin", str)
-	}
-	return nil
-}
-
-func (e OnsaleCoin) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

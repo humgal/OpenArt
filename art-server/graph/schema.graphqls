@@ -47,7 +47,6 @@ type Item {
   uploadUrl: String!
   saleStatus: Int!
   price: ItemPrice
-  creatorId: Int!
   creator: String!
   createDate: Date
 }
@@ -56,7 +55,7 @@ type Item {
 
 type ItemPrice {
   type: Int!
-  onsale: onsaleCoin!
+  onsale: OnsaleCoin!
   initPrice: Float!
   startDate: Date
   expirationDate: Date
@@ -68,7 +67,7 @@ type Collection {
   name: String!
   items: [Item]
   createDate: Date
-
+  createor: String
 }
 
 enum walletType {
@@ -112,7 +111,7 @@ input PriceRange {
   min: Float!
 }
 
-enum blockchain {
+enum Blockchain {
   ETHEREUM
   MATIC
   KLAYTN
@@ -126,28 +125,58 @@ input SearchParm {
   param: String!
   type: SearchType
   price: PriceRange
-  chain: blockchain
-  onsale: onsaleCoin
+  chain: Blockchain
+  onsale: OnsaleCoin
   creator: String
 }
 
-enum onsaleCoin {
+enum OnsaleCoin {
   ETH
   WETH
   oxBTC
 }
 
+input uploadItem {
+  name: String!
+  tag: String
+  description: String
+  uploadUrl:  [String!]!
+  creator: String!
+  saleStatus: Int! 
+  collection: String
+}
+
+input CollectionParm {
+  name: String
+  creator: String!
+}
+
+type Creator {
+  name: String
+  description: String
+  followers: [Int]
+  followerNum: Int
+}
+
+type Items {
+  items: [Item]
+}
+
+union CreateorProfile = Creator | Items
 
 type Query {
-  items(param:SearchParm!): [Item]
+  searchItems(param:SearchParm!): [Item]
+  user(id:ID!): User
+  itemDetail(id:ID!): Item
+  collection:Collection
+  discoverCreator(type: Int): [Creator]
+  createorProfile(name: String): CreateorProfile!
 }
 
-input NewTodo {
-  text: String!
-  userId: String!
-}
 
 type Mutation {
-  placeBid(bid: Bid) :String
-  
+  placeBid(bid: Bid): String
+  uploadArt(items:[uploadItem!]): [Item!]!
+  createCollection(param: CollectionParm!): Collection
+
 }
