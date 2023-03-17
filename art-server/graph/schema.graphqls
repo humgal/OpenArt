@@ -52,8 +52,11 @@ type Item {
   createDate: Date
 }
 
+
+
 type ItemPrice {
   type: Int!
+  onsale: onsaleCoin!
   initPrice: Float!
   startDate: Date
   expirationDate: Date
@@ -95,8 +98,48 @@ input Bid {
 }
 
 
+
+enum SearchType {
+  GAME
+  VIDEO
+  ANIMATION
+  PHOTOGRPHY
+  ALL
+}
+
+input PriceRange {
+  max: Float!
+  min: Float!
+}
+
+enum blockchain {
+  ETHEREUM
+  MATIC
+  KLAYTN
+  SOLANA
+  BNB
+}
+
+
+
+input SearchParm {
+  param: String!
+  type: SearchType
+  price: PriceRange
+  chain: blockchain
+  onsale: onsaleCoin
+  creator: String
+}
+
+enum onsaleCoin {
+  ETH
+  WETH
+  oxBTC
+}
+
+
 type Query {
-  placeBid(bid: Bid) :String
+  items(param:SearchParm!): [Item]
 }
 
 input NewTodo {
@@ -105,5 +148,6 @@ input NewTodo {
 }
 
 type Mutation {
-  createTodo(input: NewTodo!):String!
+  placeBid(bid: Bid) :String
+  
 }

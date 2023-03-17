@@ -67,6 +67,7 @@ type ComplexityRoot struct {
 	ItemPrice struct {
 		ExpirationDate func(childComplexity int) int
 		InitPrice      func(childComplexity int) int
+		Onsale         func(childComplexity int) int
 		StartDate      func(childComplexity int) int
 		Type           func(childComplexity int) int
 	}
@@ -77,11 +78,11 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		CreateTodo func(childComplexity int, input model.NewTodo) int
+		PlaceBid func(childComplexity int, bid *model.Bid) int
 	}
 
 	Query struct {
-		PlaceBid func(childComplexity int, bid *model.Bid) int
+		Items func(childComplexity int, param model.SearchParm) int
 	}
 
 	User struct {
@@ -114,10 +115,10 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
-	CreateTodo(ctx context.Context, input model.NewTodo) (string, error)
+	PlaceBid(ctx context.Context, bid *model.Bid) (*string, error)
 }
 type QueryResolver interface {
-	PlaceBid(ctx context.Context, bid *model.Bid) (*string, error)
+	Items(ctx context.Context, param model.SearchParm) ([]*model.Item, error)
 }
 
 type executableSchema struct {
@@ -247,6 +248,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ItemPrice.InitPrice(childComplexity), true
 
+	case "ItemPrice.onsale":
+		if e.complexity.ItemPrice.Onsale == nil {
+			break
+		}
+
+		return e.complexity.ItemPrice.Onsale(childComplexity), true
+
 	case "ItemPrice.startDate":
 		if e.complexity.ItemPrice.StartDate == nil {
 			break
@@ -275,29 +283,29 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Link.URL(childComplexity), true
 
-	case "Mutation.createTodo":
-		if e.complexity.Mutation.CreateTodo == nil {
+	case "Mutation.placeBid":
+		if e.complexity.Mutation.PlaceBid == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_createTodo_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_placeBid_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateTodo(childComplexity, args["input"].(model.NewTodo)), true
+		return e.complexity.Mutation.PlaceBid(childComplexity, args["bid"].(*model.Bid)), true
 
-	case "Query.placeBid":
-		if e.complexity.Query.PlaceBid == nil {
+	case "Query.items":
+		if e.complexity.Query.Items == nil {
 			break
 		}
 
-		args, err := ec.field_Query_placeBid_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_items_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Query.PlaceBid(childComplexity, args["bid"].(*model.Bid)), true
+		return e.complexity.Query.Items(childComplexity, args["param"].(model.SearchParm)), true
 
 	case "User.bio":
 		if e.complexity.User.Bio == nil {
@@ -442,6 +450,8 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputBid,
 		ec.unmarshalInputNewTodo,
+		ec.unmarshalInputPriceRange,
+		ec.unmarshalInputSearchParm,
 	)
 	first := true
 
@@ -521,18 +531,18 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
 // region    ***************************** args.gotpl *****************************
 
-func (ec *executionContext) field_Mutation_createTodo_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_placeBid_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 model.NewTodo
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNNewTodo2githubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐNewTodo(ctx, tmp)
+	var arg0 *model.Bid
+	if tmp, ok := rawArgs["bid"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bid"))
+		arg0, err = ec.unmarshalOBid2ᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐBid(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["input"] = arg0
+	args["bid"] = arg0
 	return args, nil
 }
 
@@ -551,18 +561,18 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_placeBid_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query_items_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *model.Bid
-	if tmp, ok := rawArgs["bid"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bid"))
-		arg0, err = ec.unmarshalOBid2ᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐBid(ctx, tmp)
+	var arg0 model.SearchParm
+	if tmp, ok := rawArgs["param"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("param"))
+		arg0, err = ec.unmarshalNSearchParm2githubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐSearchParm(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["bid"] = arg0
+	args["param"] = arg0
 	return args, nil
 }
 
@@ -1092,6 +1102,8 @@ func (ec *executionContext) fieldContext_Item_price(ctx context.Context, field g
 			switch field.Name {
 			case "type":
 				return ec.fieldContext_ItemPrice_type(ctx, field)
+			case "onsale":
+				return ec.fieldContext_ItemPrice_onsale(ctx, field)
 			case "initPrice":
 				return ec.fieldContext_ItemPrice_initPrice(ctx, field)
 			case "startDate":
@@ -1273,6 +1285,50 @@ func (ec *executionContext) fieldContext_ItemPrice_type(ctx context.Context, fie
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ItemPrice_onsale(ctx context.Context, field graphql.CollectedField, obj *model.ItemPrice) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ItemPrice_onsale(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Onsale, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.OnsaleCoin)
+	fc.Result = res
+	return ec.marshalNonsaleCoin2githubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐOnsaleCoin(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ItemPrice_onsale(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ItemPrice",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type onsaleCoin does not have child fields")
 		},
 	}
 	return fc, nil
@@ -1492,8 +1548,8 @@ func (ec *executionContext) fieldContext_Link_url(ctx context.Context, field gra
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_createTodo(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_createTodo(ctx, field)
+func (ec *executionContext) _Mutation_placeBid(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_placeBid(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1506,24 +1562,21 @@ func (ec *executionContext) _Mutation_createTodo(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateTodo(rctx, fc.Args["input"].(model.NewTodo))
+		return ec.resolvers.Mutation().PlaceBid(rctx, fc.Args["bid"].(*model.Bid))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Mutation_createTodo(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Mutation_placeBid(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Mutation",
 		Field:      field,
@@ -1540,15 +1593,15 @@ func (ec *executionContext) fieldContext_Mutation_createTodo(ctx context.Context
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_createTodo_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Mutation_placeBid_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_placeBid(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_placeBid(ctx, field)
+func (ec *executionContext) _Query_items(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_items(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1561,7 +1614,7 @@ func (ec *executionContext) _Query_placeBid(ctx context.Context, field graphql.C
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().PlaceBid(rctx, fc.Args["bid"].(*model.Bid))
+		return ec.resolvers.Query().Items(rctx, fc.Args["param"].(model.SearchParm))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1570,19 +1623,41 @@ func (ec *executionContext) _Query_placeBid(ctx context.Context, field graphql.C
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.([]*model.Item)
 	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalOItem2ᚕᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐItem(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Query_placeBid(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_items(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Item_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Item_name(ctx, field)
+			case "tag":
+				return ec.fieldContext_Item_tag(ctx, field)
+			case "description":
+				return ec.fieldContext_Item_description(ctx, field)
+			case "uploadUrl":
+				return ec.fieldContext_Item_uploadUrl(ctx, field)
+			case "saleStatus":
+				return ec.fieldContext_Item_saleStatus(ctx, field)
+			case "price":
+				return ec.fieldContext_Item_price(ctx, field)
+			case "creatorId":
+				return ec.fieldContext_Item_creatorId(ctx, field)
+			case "creator":
+				return ec.fieldContext_Item_creator(ctx, field)
+			case "createDate":
+				return ec.fieldContext_Item_createDate(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Item", field.Name)
 		},
 	}
 	defer func() {
@@ -1592,7 +1667,7 @@ func (ec *executionContext) fieldContext_Query_placeBid(ctx context.Context, fie
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_placeBid_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Query_items_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -4398,6 +4473,110 @@ func (ec *executionContext) unmarshalInputNewTodo(ctx context.Context, obj inter
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputPriceRange(ctx context.Context, obj interface{}) (model.PriceRange, error) {
+	var it model.PriceRange
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"max", "min"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "max":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("max"))
+			it.Max, err = ec.unmarshalNFloat2float64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "min":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("min"))
+			it.Min, err = ec.unmarshalNFloat2float64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputSearchParm(ctx context.Context, obj interface{}) (model.SearchParm, error) {
+	var it model.SearchParm
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"param", "type", "price", "chain", "onsale", "creator"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "param":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("param"))
+			it.Param, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "type":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
+			it.Type, err = ec.unmarshalOSearchType2ᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐSearchType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "price":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("price"))
+			it.Price, err = ec.unmarshalOPriceRange2ᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐPriceRange(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "chain":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("chain"))
+			it.Chain, err = ec.unmarshalOblockchain2ᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐBlockchain(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "onsale":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onsale"))
+			it.Onsale, err = ec.unmarshalOonsaleCoin2ᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐOnsaleCoin(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "creator":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("creator"))
+			it.Creator, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -4545,6 +4724,13 @@ func (ec *executionContext) _ItemPrice(ctx context.Context, sel ast.SelectionSet
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "onsale":
+
+			out.Values[i] = ec._ItemPrice_onsale(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "initPrice":
 
 			out.Values[i] = ec._ItemPrice_initPrice(ctx, field, obj)
@@ -4625,15 +4811,12 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
-		case "createTodo":
+		case "placeBid":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_createTodo(ctx, field)
+				return ec._Mutation_placeBid(ctx, field)
 			})
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -4664,7 +4847,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Query")
-		case "placeBid":
+		case "items":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -4673,7 +4856,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_placeBid(ctx, field)
+				res = ec._Query_items(ctx, field)
 				return res
 			}
 
@@ -5258,8 +5441,8 @@ func (ec *executionContext) marshalNLinkType2githubᚗcomᚋhumgalᚋartᚑserve
 	return v
 }
 
-func (ec *executionContext) unmarshalNNewTodo2githubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐNewTodo(ctx context.Context, v interface{}) (model.NewTodo, error) {
-	res, err := ec.unmarshalInputNewTodo(ctx, v)
+func (ec *executionContext) unmarshalNSearchParm2githubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐSearchParm(ctx context.Context, v interface{}) (model.SearchParm, error) {
+	res, err := ec.unmarshalInputSearchParm(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -5531,6 +5714,16 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 	return res
 }
 
+func (ec *executionContext) unmarshalNonsaleCoin2githubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐOnsaleCoin(ctx context.Context, v interface{}) (model.OnsaleCoin, error) {
+	var res model.OnsaleCoin
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNonsaleCoin2githubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐOnsaleCoin(ctx context.Context, sel ast.SelectionSet, v model.OnsaleCoin) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalNwalletType2githubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐWalletType(ctx context.Context, v interface{}) (model.WalletType, error) {
 	var res model.WalletType
 	err := res.UnmarshalGQL(v)
@@ -5708,6 +5901,30 @@ func (ec *executionContext) marshalOLink2ᚖgithubᚗcomᚋhumgalᚋartᚑserver
 		return graphql.Null
 	}
 	return ec._Link(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOPriceRange2ᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐPriceRange(ctx context.Context, v interface{}) (*model.PriceRange, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputPriceRange(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOSearchType2ᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐSearchType(ctx context.Context, v interface{}) (*model.SearchType, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.SearchType)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOSearchType2ᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐSearchType(ctx context.Context, sel ast.SelectionSet, v *model.SearchType) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) unmarshalOString2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
@@ -5942,6 +6159,38 @@ func (ec *executionContext) marshalO__Type2ᚖgithubᚗcomᚋ99designsᚋgqlgen�
 		return graphql.Null
 	}
 	return ec.___Type(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOblockchain2ᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐBlockchain(ctx context.Context, v interface{}) (*model.Blockchain, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.Blockchain)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOblockchain2ᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐBlockchain(ctx context.Context, sel ast.SelectionSet, v *model.Blockchain) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
+}
+
+func (ec *executionContext) unmarshalOonsaleCoin2ᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐOnsaleCoin(ctx context.Context, v interface{}) (*model.OnsaleCoin, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.OnsaleCoin)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOonsaleCoin2ᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐOnsaleCoin(ctx context.Context, sel ast.SelectionSet, v *model.OnsaleCoin) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 // endregion ***************************** type.gotpl *****************************
