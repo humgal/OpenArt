@@ -1,14 +1,16 @@
-import { StatusBar } from "expo-status-bar";
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { View } from "react-native";
 import Head from "./src/components/common/Head/Head";
-import BottomTab,{navigationRef} from "./src/components/common/BottomTab/BottomTab";
+import BottomTab from "./src/components/common/BottomTab/BottomTab";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import Home from "./src/components/Home/Home";
 import Creator from "./src/components/DiscoverCreator/Creator";
 import UploadArtWork from "./src/components/UploadArtWork/UploadArtWork";
 import Profile from "./src/components/MyProfile/Profile";
+import { navigationRef } from './src/components/common/RootNavigation';
+import Menu from "./src/components/Menu/Menu";
+import Search from "./src/components/Search/Search";
 
 export default function App() {
   return (
@@ -34,6 +36,8 @@ const MyStack = () => {
         <Stack.Screen name="Creator" component={Creator} />
         <Stack.Screen name="UploadArtWork" component={UploadArtWork} />
         <Stack.Screen name="Profile" component={Profile} />
+        <Stack.Screen  name="Menu" component={Menu}/>
+        <Stack.Screen  name="Search" component={Search}/> 
       </Stack.Navigator>
     </NavigationContainer>
   );
