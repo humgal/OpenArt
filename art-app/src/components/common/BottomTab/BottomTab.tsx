@@ -4,8 +4,8 @@ import Icon from "@expo/vector-icons/AntDesign";
 import { IconButton } from "@react-native-material/core";
 import * as RootNavigation from '../RootNavigation'
 
-const BottomTab = () => {
-
+const BottomTab = (props:any) => {
+  // console.log(props.routes);
   return (
     <View style={styles.footer}>
       <View style={{ flex: 2,alignItems:"center"}} >
@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 0,
     width: "100%",
-    height: 80,
+    height: 70,
     backgroundColor: "#ffffff",
     flexDirection: "row",
   },

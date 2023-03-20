@@ -4,6 +4,7 @@ import Head from "./src/components/common/Head/Head";
 import BottomTab from "./src/components/common/BottomTab/BottomTab";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Home from "./src/components/Home/Home";
 import Creator from "./src/components/DiscoverCreator/Creator";
 import UploadArtWork from "./src/components/UploadArtWork/UploadArtWork";
@@ -17,12 +18,27 @@ export default function App() {
     <View style={{ height: "100%" }}>
       <Head />
       <MyStack></MyStack>
-      <BottomTab></BottomTab>
+      {/* <BottomTab></BottomTab> */}
     </View>
   );
 }
 
+const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
+
+const HomeTabs=()=>{
+  return (
+    <Tab.Navigator
+    screenOptions={{headerShown: false,}}
+    tabBar={props=><BottomTab {...props}/>}
+      >
+        <Tab.Screen name="Home" component={Home} />
+        <Tab.Screen name="Creator" component={Creator} />
+        <Tab.Screen name="UploadArtWork" component={UploadArtWork} />
+        <Tab.Screen name="Profile" component={Profile} />
+    </Tab.Navigator>
+  );
+}
 
 const MyStack = () => {
   return (
@@ -30,12 +46,8 @@ const MyStack = () => {
       <Stack.Navigator
         screenOptions={{
           headerShown: false,
-        }}
-      >
-        <Stack.Screen name="Home" component={Home} />
-        <Stack.Screen name="Creator" component={Creator} />
-        <Stack.Screen name="UploadArtWork" component={UploadArtWork} />
-        <Stack.Screen name="Profile" component={Profile} />
+        }}>
+        <Stack.Screen name="HomeTab" component={HomeTabs}/>
         <Stack.Screen  name="Menu" component={Menu}/>
         <Stack.Screen  name="Search" component={Search}/> 
       </Stack.Navigator>
