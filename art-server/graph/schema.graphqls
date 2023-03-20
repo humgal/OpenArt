@@ -6,7 +6,7 @@ type User {
   id: ID!
   realname: String!
   username: String!
-  photo: String
+  avatar: String
   phone: String
   company: String
   email: String

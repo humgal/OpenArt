@@ -140,7 +140,7 @@ type User struct {
 	ID         string      `json:"id"`
 	Realname   string      `json:"realname"`
 	Username   string      `json:"username"`
-	Photo      *string     `json:"photo"`
+	Avatar     *string     `json:"avatar"`
 	Phone      *string     `json:"phone"`
 	Company    *string     `json:"company"`
 	Email      *string     `json:"email"`

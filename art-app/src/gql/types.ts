@@ -309,6 +309,7 @@ export type SubscriptionEvent = {
 
 export type User = {
   __typename?: 'User';
+  avatar?: Maybe<Scalars['String']>;
   bio?: Maybe<Scalars['String']>;
   company?: Maybe<Scalars['String']>;
   email?: Maybe<Scalars['String']>;
@@ -318,7 +319,6 @@ export type User = {
   joinDate?: Maybe<Scalars['Date']>;
   links?: Maybe<Array<Maybe<Link>>>;
   phone?: Maybe<Scalars['String']>;
-  photo?: Maybe<Scalars['String']>;
   realname: Scalars['String'];
   username: Scalars['String'];
   verifyName?: Maybe<Scalars['String']>;

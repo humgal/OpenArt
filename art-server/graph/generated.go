@@ -145,6 +145,7 @@ type ComplexityRoot struct {
 	}
 
 	User struct {
+		Avatar     func(childComplexity int) int
 		Bio        func(childComplexity int) int
 		Company    func(childComplexity int) int
 		Email      func(childComplexity int) int
@@ -154,7 +155,6 @@ type ComplexityRoot struct {
 		JoinDate   func(childComplexity int) int
 		Links      func(childComplexity int) int
 		Phone      func(childComplexity int) int
-		Photo      func(childComplexity int) int
 		Realname   func(childComplexity int) int
 		Username   func(childComplexity int) int
 		VerifyName func(childComplexity int) int
@@ -752,6 +752,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SubscriptionEvent.Payments(childComplexity), true
 
+	case "User.avatar":
+		if e.complexity.User.Avatar == nil {
+			break
+		}
+
+		return e.complexity.User.Avatar(childComplexity), true
+
 	case "User.bio":
 		if e.complexity.User.Bio == nil {
 			break
@@ -814,13 +821,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.User.Phone(childComplexity), true
-
-	case "User.photo":
-		if e.complexity.User.Photo == nil {
-			break
-		}
-
-		return e.complexity.User.Photo(childComplexity), true
 
 	case "User.realname":
 		if e.complexity.User.Realname == nil {
@@ -4038,8 +4038,8 @@ func (ec *executionContext) fieldContext_Query_user(ctx context.Context, field g
 				return ec.fieldContext_User_realname(ctx, field)
 			case "username":
 				return ec.fieldContext_User_username(ctx, field)
-			case "photo":
-				return ec.fieldContext_User_photo(ctx, field)
+			case "avatar":
+				return ec.fieldContext_User_avatar(ctx, field)
 			case "phone":
 				return ec.fieldContext_User_phone(ctx, field)
 			case "company":
@@ -4867,8 +4867,8 @@ func (ec *executionContext) fieldContext_User_username(ctx context.Context, fiel
 	return fc, nil
 }
 
-func (ec *executionContext) _User_photo(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_User_photo(ctx, field)
+func (ec *executionContext) _User_avatar(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_avatar(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -4881,7 +4881,7 @@ func (ec *executionContext) _User_photo(ctx context.Context, field graphql.Colle
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Photo, nil
+		return obj.Avatar, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4895,7 +4895,7 @@ func (ec *executionContext) _User_photo(ctx context.Context, field graphql.Colle
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_User_photo(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_User_avatar(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "User",
 		Field:      field,
@@ -8476,9 +8476,9 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "photo":
+		case "avatar":
 
-			out.Values[i] = ec._User_photo(ctx, field, obj)
+			out.Values[i] = ec._User_avatar(ctx, field, obj)
 
 		case "phone":
 
