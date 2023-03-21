@@ -37,6 +37,15 @@ type CollectionParm struct {
 	Creator string  `json:"creator"`
 }
 
+type Follow struct {
+	ID            string `json:"id"`
+	FollowerID    int    `json:"followerId"`
+	FollowerName  string `json:"followerName"`
+	FollowingID   int    `json:"followingId"`
+	FollowingName string `json:"followingName"`
+	Status        bool   `json:"status"`
+}
+
 type Item struct {
 	ID          string     `json:"id"`
 	Name        string     `json:"name"`
@@ -143,9 +152,7 @@ type User struct {
 	VerifyType   *VerifyType `json:"verifyType"`
 	VerifyName   *string     `json:"verifyName"`
 	IsCreator    *bool       `json:"isCreator"`
-	Followers    []*int      `json:"followers"`
 	FollowerNum  *int        `json:"followerNum"`
-	Following    []*int      `json:"following"`
 	FollowingNum *int        `json:"followingNum"`
 	Links        []*Link     `json:"links"`
 }

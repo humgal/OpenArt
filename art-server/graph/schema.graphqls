@@ -16,11 +16,19 @@ type User {
   verifyType: VerifyType
   verifyName: String
   isCreator: Boolean
-  followers: [Int]
   followerNum: Int
-  following: [Int]
   followingNum: Int
   links: [Link]
+}
+
+# graph database
+type Follow {
+  id: ID!
+  followerId: Int!
+  followerName: String!
+  followingId: Int!
+  followingName: String!
+  status: Boolean!
 }
 
 input NewUser {

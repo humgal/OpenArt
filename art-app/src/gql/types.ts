@@ -52,6 +52,16 @@ export type CollectionParm = {
   name?: InputMaybe<Scalars['String']>;
 };
 
+export type Follow = {
+  __typename?: 'Follow';
+  followerId: Scalars['Int'];
+  followerName: Scalars['String'];
+  followingId: Scalars['Int'];
+  followingName: Scalars['String'];
+  id: Scalars['ID'];
+  status: Scalars['Boolean'];
+};
+
 export type Item = {
   __typename?: 'Item';
   createDate?: Maybe<Scalars['Date']>;
@@ -294,8 +304,6 @@ export type User = {
   company?: Maybe<Scalars['String']>;
   email?: Maybe<Scalars['String']>;
   followerNum?: Maybe<Scalars['Int']>;
-  followers?: Maybe<Array<Maybe<Scalars['Int']>>>;
-  following?: Maybe<Array<Maybe<Scalars['Int']>>>;
   followingNum?: Maybe<Scalars['Int']>;
   id: Scalars['ID'];
   img?: Maybe<Scalars['String']>;
