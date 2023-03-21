@@ -54,9 +54,11 @@ export type CollectionParm = {
 
 export type Creator = {
   __typename?: 'Creator';
+  avatar?: Maybe<Scalars['String']>;
   description?: Maybe<Scalars['String']>;
   followerNum?: Maybe<Scalars['Int']>;
   followers?: Maybe<Array<Maybe<Scalars['Int']>>>;
+  img?: Maybe<Scalars['String']>;
   userId: Scalars['ID'];
   username: Scalars['String'];
 };

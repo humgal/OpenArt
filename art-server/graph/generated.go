@@ -66,9 +66,11 @@ type ComplexityRoot struct {
 	}
 
 	Creator struct {
+		Avatar      func(childComplexity int) int
 		Description func(childComplexity int) int
 		FollowerNum func(childComplexity int) int
 		Followers   func(childComplexity int) int
+		Img         func(childComplexity int) int
 		UserID      func(childComplexity int) int
 		Username    func(childComplexity int) int
 	}
@@ -298,6 +300,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Collection.Name(childComplexity), true
 
+	case "Creator.avatar":
+		if e.complexity.Creator.Avatar == nil {
+			break
+		}
+
+		return e.complexity.Creator.Avatar(childComplexity), true
+
 	case "Creator.description":
 		if e.complexity.Creator.Description == nil {
 			break
@@ -318,6 +327,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Creator.Followers(childComplexity), true
+
+	case "Creator.img":
+		if e.complexity.Creator.Img == nil {
+			break
+		}
+
+		return e.complexity.Creator.Img(childComplexity), true
 
 	case "Creator.userId":
 		if e.complexity.Creator.UserID == nil {
@@ -2016,6 +2032,88 @@ func (ec *executionContext) _Creator_description(ctx context.Context, field grap
 }
 
 func (ec *executionContext) fieldContext_Creator_description(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Creator",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Creator_img(ctx context.Context, field graphql.CollectedField, obj *model.Creator) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Creator_img(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Img, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Creator_img(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Creator",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Creator_avatar(ctx context.Context, field graphql.CollectedField, obj *model.Creator) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Creator_avatar(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Avatar, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Creator_avatar(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Creator",
 		Field:      field,
@@ -4328,6 +4426,10 @@ func (ec *executionContext) fieldContext_Query_createor(ctx context.Context, fie
 				return ec.fieldContext_Creator_username(ctx, field)
 			case "description":
 				return ec.fieldContext_Creator_description(ctx, field)
+			case "img":
+				return ec.fieldContext_Creator_img(ctx, field)
+			case "avatar":
+				return ec.fieldContext_Creator_avatar(ctx, field)
 			case "followers":
 				return ec.fieldContext_Creator_followers(ctx, field)
 			case "followerNum":
@@ -4392,6 +4494,10 @@ func (ec *executionContext) fieldContext_Query_featureCreator(ctx context.Contex
 				return ec.fieldContext_Creator_username(ctx, field)
 			case "description":
 				return ec.fieldContext_Creator_description(ctx, field)
+			case "img":
+				return ec.fieldContext_Creator_img(ctx, field)
+			case "avatar":
+				return ec.fieldContext_Creator_avatar(ctx, field)
 			case "followers":
 				return ec.fieldContext_Creator_followers(ctx, field)
 			case "followerNum":
@@ -7837,6 +7943,14 @@ func (ec *executionContext) _Creator(ctx context.Context, sel ast.SelectionSet, 
 		case "description":
 
 			out.Values[i] = ec._Creator_description(ctx, field, obj)
+
+		case "img":
+
+			out.Values[i] = ec._Creator_img(ctx, field, obj)
+
+		case "avatar":
+
+			out.Values[i] = ec._Creator_avatar(ctx, field, obj)
 
 		case "followers":
 

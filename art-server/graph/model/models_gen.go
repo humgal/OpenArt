@@ -41,6 +41,8 @@ type Creator struct {
 	UserID      string  `json:"userId"`
 	Username    string  `json:"username"`
 	Description *string `json:"description"`
+	Img         *string `json:"img"`
+	Avatar      *string `json:"avatar"`
 	Followers   []*int  `json:"followers"`
 	FollowerNum *int    `json:"followerNum"`
 }

@@ -200,6 +200,8 @@ type Creator {
   userId: ID!
   username: String!
   description: String
+  img: String
+  avatar: String
   followers: [Int]
   followerNum: Int
 }
