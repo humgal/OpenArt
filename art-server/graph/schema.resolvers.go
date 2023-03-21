@@ -86,16 +86,6 @@ func (r *queryResolver) Items(ctx context.Context, createor *string, ids []strin
 	panic(fmt.Errorf("not implemented: Items - items"))
 }
 
-// Createor is the resolver for the createor field.
-func (r *queryResolver) Createor(ctx context.Context, name *string) (*model.Creator, error) {
-	panic(fmt.Errorf("not implemented: Createor - createor"))
-}
-
-// FeatureCreator is the resolver for the featureCreator field.
-func (r *queryResolver) FeatureCreator(ctx context.Context, typeArg int) ([]*model.Creator, error) {
-	panic(fmt.Errorf("not implemented: FeatureCreator - featureCreator"))
-}
-
 // SubscriptionPayment is the resolver for the subscriptionPayment field.
 func (r *subscriptionResolver) SubscriptionPayment(ctx context.Context, itemid *string) (<-chan *model.SubscriptionEvent, error) {
 	panic(fmt.Errorf("not implemented: SubscriptionPayment - subscriptionPayment"))

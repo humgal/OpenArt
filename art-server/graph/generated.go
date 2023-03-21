@@ -65,18 +65,9 @@ type ComplexityRoot struct {
 		Name       func(childComplexity int) int
 	}
 
-	Creator struct {
-		Avatar      func(childComplexity int) int
-		Description func(childComplexity int) int
-		FollowerNum func(childComplexity int) int
-		Followers   func(childComplexity int) int
-		Img         func(childComplexity int) int
-		UserID      func(childComplexity int) int
-		Username    func(childComplexity int) int
-	}
-
 	Item struct {
 		CreateDate  func(childComplexity int) int
+		CreateorID  func(childComplexity int) int
 		Creator     func(childComplexity int) int
 		Description func(childComplexity int) int
 		ID          func(childComplexity int) int
@@ -128,13 +119,11 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Collection     func(childComplexity int, createor string) int
-		Createor       func(childComplexity int, name *string) int
-		FeatureCreator func(childComplexity int, typeArg int) int
-		Item           func(childComplexity int, id string) int
-		Items          func(childComplexity int, createor *string, ids []string) int
-		SearchItems    func(childComplexity int, param model.SearchParm) int
-		User           func(childComplexity int, id string) int
+		Collection  func(childComplexity int, createor string) int
+		Item        func(childComplexity int, id string) int
+		Items       func(childComplexity int, createor *string, ids []string) int
+		SearchItems func(childComplexity int, param model.SearchParm) int
+		User        func(childComplexity int, id string) int
 	}
 
 	Subscription struct {
@@ -147,20 +136,24 @@ type ComplexityRoot struct {
 	}
 
 	User struct {
-		Avatar     func(childComplexity int) int
-		Bio        func(childComplexity int) int
-		Company    func(childComplexity int) int
-		Email      func(childComplexity int) int
-		ID         func(childComplexity int) int
-		Img        func(childComplexity int) int
-		IsCreator  func(childComplexity int) int
-		JoinDate   func(childComplexity int) int
-		Links      func(childComplexity int) int
-		Phone      func(childComplexity int) int
-		Realname   func(childComplexity int) int
-		Username   func(childComplexity int) int
-		VerifyName func(childComplexity int) int
-		VerifyType func(childComplexity int) int
+		Avatar       func(childComplexity int) int
+		Bio          func(childComplexity int) int
+		Company      func(childComplexity int) int
+		Email        func(childComplexity int) int
+		FollowerNum  func(childComplexity int) int
+		Followers    func(childComplexity int) int
+		Following    func(childComplexity int) int
+		FollowingNum func(childComplexity int) int
+		ID           func(childComplexity int) int
+		Img          func(childComplexity int) int
+		IsCreator    func(childComplexity int) int
+		JoinDate     func(childComplexity int) int
+		Links        func(childComplexity int) int
+		Phone        func(childComplexity int) int
+		Realname     func(childComplexity int) int
+		Username     func(childComplexity int) int
+		VerifyName   func(childComplexity int) int
+		VerifyType   func(childComplexity int) int
 	}
 
 	Wallet struct {
@@ -187,8 +180,6 @@ type QueryResolver interface {
 	Item(ctx context.Context, id string) (*model.Item, error)
 	Collection(ctx context.Context, createor string) (*model.Collection, error)
 	Items(ctx context.Context, createor *string, ids []string) ([]*model.Item, error)
-	Createor(ctx context.Context, name *string) (*model.Creator, error)
-	FeatureCreator(ctx context.Context, typeArg int) ([]*model.Creator, error)
 }
 type SubscriptionResolver interface {
 	SubscriptionPayment(ctx context.Context, itemid *string) (<-chan *model.SubscriptionEvent, error)
@@ -300,61 +291,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Collection.Name(childComplexity), true
 
-	case "Creator.avatar":
-		if e.complexity.Creator.Avatar == nil {
-			break
-		}
-
-		return e.complexity.Creator.Avatar(childComplexity), true
-
-	case "Creator.description":
-		if e.complexity.Creator.Description == nil {
-			break
-		}
-
-		return e.complexity.Creator.Description(childComplexity), true
-
-	case "Creator.followerNum":
-		if e.complexity.Creator.FollowerNum == nil {
-			break
-		}
-
-		return e.complexity.Creator.FollowerNum(childComplexity), true
-
-	case "Creator.followers":
-		if e.complexity.Creator.Followers == nil {
-			break
-		}
-
-		return e.complexity.Creator.Followers(childComplexity), true
-
-	case "Creator.img":
-		if e.complexity.Creator.Img == nil {
-			break
-		}
-
-		return e.complexity.Creator.Img(childComplexity), true
-
-	case "Creator.userId":
-		if e.complexity.Creator.UserID == nil {
-			break
-		}
-
-		return e.complexity.Creator.UserID(childComplexity), true
-
-	case "Creator.username":
-		if e.complexity.Creator.Username == nil {
-			break
-		}
-
-		return e.complexity.Creator.Username(childComplexity), true
-
 	case "Item.createDate":
 		if e.complexity.Item.CreateDate == nil {
 			break
 		}
 
 		return e.complexity.Item.CreateDate(childComplexity), true
+
+	case "Item.createorId":
+		if e.complexity.Item.CreateorID == nil {
+			break
+		}
+
+		return e.complexity.Item.CreateorID(childComplexity), true
 
 	case "Item.creator":
 		if e.complexity.Item.Creator == nil {
@@ -670,30 +619,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Collection(childComplexity, args["createor"].(string)), true
 
-	case "Query.createor":
-		if e.complexity.Query.Createor == nil {
-			break
-		}
-
-		args, err := ec.field_Query_createor_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.Createor(childComplexity, args["name"].(*string)), true
-
-	case "Query.featureCreator":
-		if e.complexity.Query.FeatureCreator == nil {
-			break
-		}
-
-		args, err := ec.field_Query_featureCreator_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.FeatureCreator(childComplexity, args["type"].(int)), true
-
 	case "Query.item":
 		if e.complexity.Query.Item == nil {
 			break
@@ -795,6 +720,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.User.Email(childComplexity), true
+
+	case "User.followerNum":
+		if e.complexity.User.FollowerNum == nil {
+			break
+		}
+
+		return e.complexity.User.FollowerNum(childComplexity), true
+
+	case "User.followers":
+		if e.complexity.User.Followers == nil {
+			break
+		}
+
+		return e.complexity.User.Followers(childComplexity), true
+
+	case "User.following":
+		if e.complexity.User.Following == nil {
+			break
+		}
+
+		return e.complexity.User.Following(childComplexity), true
+
+	case "User.followingNum":
+		if e.complexity.User.FollowingNum == nil {
+			break
+		}
+
+		return e.complexity.User.FollowingNum(childComplexity), true
 
 	case "User.id":
 		if e.complexity.User.ID == nil {
@@ -1180,36 +1133,6 @@ func (ec *executionContext) field_Query_collection_args(ctx context.Context, raw
 		}
 	}
 	args["createor"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_createor_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *string
-	if tmp, ok := rawArgs["name"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["name"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_featureCreator_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["type"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
-		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["type"] = arg0
 	return args, nil
 }
 
@@ -1822,6 +1745,8 @@ func (ec *executionContext) fieldContext_Collection_items(ctx context.Context, f
 				return ec.fieldContext_Item_saleStatus(ctx, field)
 			case "price":
 				return ec.fieldContext_Item_price(ctx, field)
+			case "createorId":
+				return ec.fieldContext_Item_createorId(ctx, field)
 			case "creator":
 				return ec.fieldContext_Item_creator(ctx, field)
 			case "createDate":
@@ -1910,299 +1835,6 @@ func (ec *executionContext) fieldContext_Collection_createor(ctx context.Context
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Creator_userId(ctx context.Context, field graphql.CollectedField, obj *model.Creator) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Creator_userId(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.UserID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Creator_userId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Creator",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Creator_username(ctx context.Context, field graphql.CollectedField, obj *model.Creator) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Creator_username(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Username, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Creator_username(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Creator",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Creator_description(ctx context.Context, field graphql.CollectedField, obj *model.Creator) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Creator_description(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Description, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Creator_description(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Creator",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Creator_img(ctx context.Context, field graphql.CollectedField, obj *model.Creator) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Creator_img(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Img, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Creator_img(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Creator",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Creator_avatar(ctx context.Context, field graphql.CollectedField, obj *model.Creator) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Creator_avatar(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Avatar, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Creator_avatar(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Creator",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Creator_followers(ctx context.Context, field graphql.CollectedField, obj *model.Creator) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Creator_followers(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Followers, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*int)
-	fc.Result = res
-	return ec.marshalOInt2ᚕᚖint(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Creator_followers(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Creator",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Creator_followerNum(ctx context.Context, field graphql.CollectedField, obj *model.Creator) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Creator_followerNum(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.FollowerNum, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*int)
-	fc.Result = res
-	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Creator_followerNum(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Creator",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -2518,6 +2150,50 @@ func (ec *executionContext) fieldContext_Item_price(ctx context.Context, field g
 				return ec.fieldContext_ItemPrice_expirationDate(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ItemPrice", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Item_createorId(ctx context.Context, field graphql.CollectedField, obj *model.Item) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Item_createorId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreateorID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Item_createorId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Item",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
 		},
 	}
 	return fc, nil
@@ -3286,6 +2962,8 @@ func (ec *executionContext) fieldContext_Mutation_uploadArt(ctx context.Context,
 				return ec.fieldContext_Item_saleStatus(ctx, field)
 			case "price":
 				return ec.fieldContext_Item_price(ctx, field)
+			case "createorId":
+				return ec.fieldContext_Item_createorId(ctx, field)
 			case "creator":
 				return ec.fieldContext_Item_creator(ctx, field)
 			case "createDate":
@@ -3361,6 +3039,8 @@ func (ec *executionContext) fieldContext_Mutation_setPrice(ctx context.Context, 
 				return ec.fieldContext_Item_saleStatus(ctx, field)
 			case "price":
 				return ec.fieldContext_Item_price(ctx, field)
+			case "createorId":
+				return ec.fieldContext_Item_createorId(ctx, field)
 			case "creator":
 				return ec.fieldContext_Item_creator(ctx, field)
 			case "createDate":
@@ -3436,6 +3116,8 @@ func (ec *executionContext) fieldContext_Mutation_mintArt(ctx context.Context, f
 				return ec.fieldContext_Item_saleStatus(ctx, field)
 			case "price":
 				return ec.fieldContext_Item_price(ctx, field)
+			case "createorId":
+				return ec.fieldContext_Item_createorId(ctx, field)
 			case "creator":
 				return ec.fieldContext_Item_creator(ctx, field)
 			case "createDate":
@@ -4072,6 +3754,8 @@ func (ec *executionContext) fieldContext_Query_searchItems(ctx context.Context, 
 				return ec.fieldContext_Item_saleStatus(ctx, field)
 			case "price":
 				return ec.fieldContext_Item_price(ctx, field)
+			case "createorId":
+				return ec.fieldContext_Item_createorId(ctx, field)
 			case "creator":
 				return ec.fieldContext_Item_creator(ctx, field)
 			case "createDate":
@@ -4156,6 +3840,14 @@ func (ec *executionContext) fieldContext_Query_user(ctx context.Context, field g
 				return ec.fieldContext_User_verifyName(ctx, field)
 			case "isCreator":
 				return ec.fieldContext_User_isCreator(ctx, field)
+			case "followers":
+				return ec.fieldContext_User_followers(ctx, field)
+			case "followerNum":
+				return ec.fieldContext_User_followerNum(ctx, field)
+			case "following":
+				return ec.fieldContext_User_following(ctx, field)
+			case "followingNum":
+				return ec.fieldContext_User_followingNum(ctx, field)
 			case "links":
 				return ec.fieldContext_User_links(ctx, field)
 			}
@@ -4226,6 +3918,8 @@ func (ec *executionContext) fieldContext_Query_item(ctx context.Context, field g
 				return ec.fieldContext_Item_saleStatus(ctx, field)
 			case "price":
 				return ec.fieldContext_Item_price(ctx, field)
+			case "createorId":
+				return ec.fieldContext_Item_createorId(ctx, field)
 			case "creator":
 				return ec.fieldContext_Item_creator(ctx, field)
 			case "createDate":
@@ -4362,6 +4056,8 @@ func (ec *executionContext) fieldContext_Query_items(ctx context.Context, field 
 				return ec.fieldContext_Item_saleStatus(ctx, field)
 			case "price":
 				return ec.fieldContext_Item_price(ctx, field)
+			case "createorId":
+				return ec.fieldContext_Item_createorId(ctx, field)
 			case "creator":
 				return ec.fieldContext_Item_creator(ctx, field)
 			case "createDate":
@@ -4378,142 +4074,6 @@ func (ec *executionContext) fieldContext_Query_items(ctx context.Context, field 
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_items_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Query_createor(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_createor(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Createor(rctx, fc.Args["name"].(*string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.Creator)
-	fc.Result = res
-	return ec.marshalOCreator2ᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐCreator(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Query_createor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "userId":
-				return ec.fieldContext_Creator_userId(ctx, field)
-			case "username":
-				return ec.fieldContext_Creator_username(ctx, field)
-			case "description":
-				return ec.fieldContext_Creator_description(ctx, field)
-			case "img":
-				return ec.fieldContext_Creator_img(ctx, field)
-			case "avatar":
-				return ec.fieldContext_Creator_avatar(ctx, field)
-			case "followers":
-				return ec.fieldContext_Creator_followers(ctx, field)
-			case "followerNum":
-				return ec.fieldContext_Creator_followerNum(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Creator", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_createor_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Query_featureCreator(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_featureCreator(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().FeatureCreator(rctx, fc.Args["type"].(int))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*model.Creator)
-	fc.Result = res
-	return ec.marshalOCreator2ᚕᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐCreator(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Query_featureCreator(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "userId":
-				return ec.fieldContext_Creator_userId(ctx, field)
-			case "username":
-				return ec.fieldContext_Creator_username(ctx, field)
-			case "description":
-				return ec.fieldContext_Creator_description(ctx, field)
-			case "img":
-				return ec.fieldContext_Creator_img(ctx, field)
-			case "avatar":
-				return ec.fieldContext_Creator_avatar(ctx, field)
-			case "followers":
-				return ec.fieldContext_Creator_followers(ctx, field)
-			case "followerNum":
-				return ec.fieldContext_Creator_followerNum(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Creator", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_featureCreator_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -5378,6 +4938,170 @@ func (ec *executionContext) fieldContext_User_isCreator(ctx context.Context, fie
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _User_followers(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_followers(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Followers, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚕᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_User_followers(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _User_followerNum(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_followerNum(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FollowerNum, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_User_followerNum(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _User_following(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_following(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Following, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚕᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_User_following(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _User_followingNum(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_followingNum(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FollowingNum, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_User_followingNum(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -7916,61 +7640,6 @@ func (ec *executionContext) _Collection(ctx context.Context, sel ast.SelectionSe
 	return out
 }
 
-var creatorImplementors = []string{"Creator"}
-
-func (ec *executionContext) _Creator(ctx context.Context, sel ast.SelectionSet, obj *model.Creator) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, creatorImplementors)
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("Creator")
-		case "userId":
-
-			out.Values[i] = ec._Creator_userId(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "username":
-
-			out.Values[i] = ec._Creator_username(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "description":
-
-			out.Values[i] = ec._Creator_description(ctx, field, obj)
-
-		case "img":
-
-			out.Values[i] = ec._Creator_img(ctx, field, obj)
-
-		case "avatar":
-
-			out.Values[i] = ec._Creator_avatar(ctx, field, obj)
-
-		case "followers":
-
-			out.Values[i] = ec._Creator_followers(ctx, field, obj)
-
-		case "followerNum":
-
-			out.Values[i] = ec._Creator_followerNum(ctx, field, obj)
-
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
 var itemImplementors = []string{"Item"}
 
 func (ec *executionContext) _Item(ctx context.Context, sel ast.SelectionSet, obj *model.Item) graphql.Marshaler {
@@ -8021,6 +7690,13 @@ func (ec *executionContext) _Item(ctx context.Context, sel ast.SelectionSet, obj
 
 			out.Values[i] = ec._Item_price(ctx, field, obj)
 
+		case "createorId":
+
+			out.Values[i] = ec._Item_createorId(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "creator":
 
 			out.Values[i] = ec._Item_creator(ctx, field, obj)
@@ -8447,46 +8123,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
-		case "createor":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_createor(ctx, field)
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return rrm(innerCtx)
-			})
-		case "featureCreator":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_featureCreator(ctx, field)
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return rrm(innerCtx)
-			})
 		case "__type":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -8629,6 +8265,22 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 		case "isCreator":
 
 			out.Values[i] = ec._User_isCreator(ctx, field, obj)
+
+		case "followers":
+
+			out.Values[i] = ec._User_followers(ctx, field, obj)
+
+		case "followerNum":
+
+			out.Values[i] = ec._User_followerNum(ctx, field, obj)
+
+		case "following":
+
+			out.Values[i] = ec._User_following(ctx, field, obj)
+
+		case "followingNum":
+
+			out.Values[i] = ec._User_followingNum(ctx, field, obj)
 
 		case "links":
 
@@ -9609,54 +9261,6 @@ func (ec *executionContext) marshalOCollection2ᚖgithubᚗcomᚋhumgalᚋartᚑ
 		return graphql.Null
 	}
 	return ec._Collection(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalOCreator2ᚕᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐCreator(ctx context.Context, sel ast.SelectionSet, v []*model.Creator) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalOCreator2ᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐCreator(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	return ret
-}
-
-func (ec *executionContext) marshalOCreator2ᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐCreator(ctx context.Context, sel ast.SelectionSet, v *model.Creator) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._Creator(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalODate2ᚖstring(ctx context.Context, v interface{}) (*string, error) {

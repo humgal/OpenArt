@@ -16,6 +16,10 @@ type User {
   verifyType: VerifyType
   verifyName: String
   isCreator: Boolean
+  followers: [Int]
+  followerNum: Int
+  following: [Int]
+  followingNum: Int
   links: [Link]
 }
 
@@ -55,6 +59,7 @@ type Item {
   uploadUrl: String!
   saleStatus: Int!
   price: ItemPrice
+  createorId: ID!
   creator: String!
   createDate: Date
 }
@@ -196,15 +201,6 @@ input CollectionParm {
   creator: String!
 }
 
-type Creator {
-  userId: ID!
-  username: String!
-  description: String
-  img: String
-  avatar: String
-  followers: [Int]
-  followerNum: Int
-}
 
 type SubscriptionEvent {
   payments: [Payment]
@@ -226,8 +222,6 @@ type Query {
   item(id:ID!): Item
   collection(createor:String!):Collection
   items(createor:String,ids:[ID!]):[Item]
-  createor(name:String):Creator
-  featureCreator(type:Int!):[Creator]
 }
 
 

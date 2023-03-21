@@ -52,20 +52,10 @@ export type CollectionParm = {
   name?: InputMaybe<Scalars['String']>;
 };
 
-export type Creator = {
-  __typename?: 'Creator';
-  avatar?: Maybe<Scalars['String']>;
-  description?: Maybe<Scalars['String']>;
-  followerNum?: Maybe<Scalars['Int']>;
-  followers?: Maybe<Array<Maybe<Scalars['Int']>>>;
-  img?: Maybe<Scalars['String']>;
-  userId: Scalars['ID'];
-  username: Scalars['String'];
-};
-
 export type Item = {
   __typename?: 'Item';
   createDate?: Maybe<Scalars['Date']>;
+  createorId: Scalars['ID'];
   creator: Scalars['String'];
   description?: Maybe<Scalars['String']>;
   id: Scalars['ID'];
@@ -228,8 +218,6 @@ export type PriceRange = {
 export type Query = {
   __typename?: 'Query';
   collection?: Maybe<Collection>;
-  createor?: Maybe<Creator>;
-  featureCreator?: Maybe<Array<Maybe<Creator>>>;
   item?: Maybe<Item>;
   items?: Maybe<Array<Maybe<Item>>>;
   searchItems?: Maybe<Array<Maybe<Item>>>;
@@ -239,16 +227,6 @@ export type Query = {
 
 export type QueryCollectionArgs = {
   createor: Scalars['String'];
-};
-
-
-export type QueryCreateorArgs = {
-  name?: InputMaybe<Scalars['String']>;
-};
-
-
-export type QueryFeatureCreatorArgs = {
-  type: Scalars['Int'];
 };
 
 
@@ -315,6 +293,10 @@ export type User = {
   bio?: Maybe<Scalars['String']>;
   company?: Maybe<Scalars['String']>;
   email?: Maybe<Scalars['String']>;
+  followerNum?: Maybe<Scalars['Int']>;
+  followers?: Maybe<Array<Maybe<Scalars['Int']>>>;
+  following?: Maybe<Array<Maybe<Scalars['Int']>>>;
+  followingNum?: Maybe<Scalars['Int']>;
   id: Scalars['ID'];
   img?: Maybe<Scalars['String']>;
   isCreator?: Maybe<Scalars['Boolean']>;

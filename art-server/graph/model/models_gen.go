@@ -37,16 +37,6 @@ type CollectionParm struct {
 	Creator string  `json:"creator"`
 }
 
-type Creator struct {
-	UserID      string  `json:"userId"`
-	Username    string  `json:"username"`
-	Description *string `json:"description"`
-	Img         *string `json:"img"`
-	Avatar      *string `json:"avatar"`
-	Followers   []*int  `json:"followers"`
-	FollowerNum *int    `json:"followerNum"`
-}
-
 type Item struct {
 	ID          string     `json:"id"`
 	Name        string     `json:"name"`
@@ -55,6 +45,7 @@ type Item struct {
 	UploadURL   string     `json:"uploadUrl"`
 	SaleStatus  int        `json:"saleStatus"`
 	Price       *ItemPrice `json:"price"`
+	CreateorID  string     `json:"createorId"`
 	Creator     string     `json:"creator"`
 	CreateDate  *string    `json:"createDate"`
 }
@@ -139,20 +130,24 @@ type SubscriptionEvent struct {
 }
 
 type User struct {
-	ID         string      `json:"id"`
-	Realname   string      `json:"realname"`
-	Username   string      `json:"username"`
-	Avatar     *string     `json:"avatar"`
-	Phone      *string     `json:"phone"`
-	Company    *string     `json:"company"`
-	Email      *string     `json:"email"`
-	Bio        *string     `json:"bio"`
-	Img        *string     `json:"img"`
-	JoinDate   *string     `json:"joinDate"`
-	VerifyType *VerifyType `json:"verifyType"`
-	VerifyName *string     `json:"verifyName"`
-	IsCreator  *bool       `json:"isCreator"`
-	Links      []*Link     `json:"links"`
+	ID           string      `json:"id"`
+	Realname     string      `json:"realname"`
+	Username     string      `json:"username"`
+	Avatar       *string     `json:"avatar"`
+	Phone        *string     `json:"phone"`
+	Company      *string     `json:"company"`
+	Email        *string     `json:"email"`
+	Bio          *string     `json:"bio"`
+	Img          *string     `json:"img"`
+	JoinDate     *string     `json:"joinDate"`
+	VerifyType   *VerifyType `json:"verifyType"`
+	VerifyName   *string     `json:"verifyName"`
+	IsCreator    *bool       `json:"isCreator"`
+	Followers    []*int      `json:"followers"`
+	FollowerNum  *int        `json:"followerNum"`
+	Following    []*int      `json:"following"`
+	FollowingNum *int        `json:"followingNum"`
+	Links        []*Link     `json:"links"`
 }
 
 type UploadItem struct {
