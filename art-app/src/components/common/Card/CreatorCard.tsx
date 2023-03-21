@@ -1,44 +1,33 @@
-import { Button } from "react-native-paper";
+import { Avatar, Button, Card } from "react-native-paper";
 import { User } from "../../../gql/types";
-import {Image, View,Text,StyleSheet} from "react-native";
-import { Icon } from "@react-native-material/core";
+import { Image, View, Text, StyleSheet } from "react-native";
+import Icon from "@expo/vector-icons/Ionicons";
+import style from "./creatorcard.css";
 
-const CreatorCard = (props:User) =>{
-    return(
-        <View>
-            <Image style={styles.img} source={require(String(props.img))} /> 
-            <Image style={styles.avatar}  source={require(String(props.avatar))}/>
-            <Text style={styles.username} >{props.username}</Text>
-            <Text style={styles.description} >{props.bio}</Text>
-            <Text style={styles.followerNum} > {props.followerNum}</Text>
-            <Button style={styles.followButton} icon={props => <Icon name="md-person-outline" {...props} />}
-            onPress={() => {
-              
-            }}>Follow</Button>
+const CreatorCard = (props: User) => {
+  return (
+    <Card style={{ padding: 5, margin: 8 }}>
+      <Card.Cover style={{ width: "100%" }} source={{ uri: props.img }} />
+      <View>
+        <Avatar.Image style={style.avatar} source={require("./2.png")} />
+      </View>
+      <View>
+        <Text style={style.username}>{props.username}</Text>
+        <Text style={style.bio}>{props.bio}</Text>
+        <View style={{height:30}}>
+          <Text style={style.followerNum}>  
+          <Text style={{fontSize:20}}>
+          {props.followerNum }
+          </Text>
+          
+          Followers</Text>
+          <Text style={style.followButton} onPress={() => {}}>
+            Follow
+          </Text>
         </View>
-        
-    )
-}
-
-const styles = StyleSheet.create({
-    img:{
-
-    },
-    avatar:{
-
-    },
-    username:{
-
-    },
-    description:{
-
-    },
-    followerNum:{
-
-    },
-    followButton:{
-
-    }
-})
+      </View>
+    </Card>
+  );
+};
 
 export default CreatorCard;
