@@ -78,6 +78,7 @@ type Item {
   createorId: ID!
   creator: String!
   createDate: Date
+  collectionId: Int
 }
 
 enum ItemPriceType {
@@ -89,7 +90,7 @@ enum ItemPriceType {
 type ItemPrice {
   itemId: ID!
   itemPriceType: ItemPriceType!
-  onsale: OnsaleType!
+  onsaleType: OnsaleType!
   initPrice: Float!
   serviceFee: Float!
   startDate: Date
@@ -100,7 +101,7 @@ type ItemPrice {
 input PriceParam {
   itemId: ID!
   itemPriceType: ItemPriceType!
-  onsale: OnsaleType!
+  onsaleType: OnsaleType!
   initPrice: Float!
   startDate: Date
   expirationDate: Date
@@ -127,7 +128,7 @@ type wallet {
 }
 
 input PayParam {
-  id: ID!
+  item_id: ID!
   onsaleType: OnsaleType!
   balance: Float!
   serviceFee: Float!
@@ -136,7 +137,7 @@ input PayParam {
 
 type Payment {
   itemId: Int!
-  onsaleType: Int!
+  onsaleType: OnsaleType!
   price: Float!
   serviceFee: Float!
   createor: String!
@@ -153,13 +154,15 @@ input BidParm {
 }
 
 type Bid{
-  temId: Int!
+  id: ID!
+  itemId: Int!
   serviceFee: Float!
   total: Float !
-  user: ID!
+  userId: ID!
   username: String!
   bidDate: Date!
   itemPriceType: ItemPriceType!
+  onsaleType: OnsaleType!
   bidEndDate: Date
 }
 
@@ -202,11 +205,13 @@ enum OnsaleType {
   oxBTC
 }
 
+
 input uploadItem {
   name: String!
   tag: String
   description: String
   uploadUrl:  [String!]!
+  createId: ID!
   creator: String!
   saleStatus: Int! 
   collection: String
