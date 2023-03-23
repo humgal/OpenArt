@@ -17,11 +17,13 @@ export type Bid = {
   __typename?: 'Bid';
   bidDate: Scalars['Date'];
   bidEndDate?: Maybe<Scalars['Date']>;
+  id: Scalars['ID'];
+  itemId: Scalars['Int'];
   itemPriceType: ItemPriceType;
+  onsaleType: OnsaleType;
   serviceFee: Scalars['Float'];
-  temId: Scalars['Int'];
   total: Scalars['Float'];
-  user: Scalars['ID'];
+  userId: Scalars['ID'];
   username: Scalars['String'];
 };
 
@@ -72,6 +74,7 @@ export type FollowParam = {
 
 export type Item = {
   __typename?: 'Item';
+  collectionId?: Maybe<Scalars['Int']>;
   createDate?: Maybe<Scalars['Date']>;
   createorId: Scalars['ID'];
   creator: Scalars['String'];
@@ -90,7 +93,7 @@ export type ItemPrice = {
   initPrice: Scalars['Float'];
   itemId: Scalars['ID'];
   itemPriceType: ItemPriceType;
-  onsale: OnsaleType;
+  onsaleType: OnsaleType;
   serviceFee: Scalars['Float'];
   startDate?: Maybe<Scalars['Date']>;
 };
@@ -216,8 +219,9 @@ export type Payment = {
   __typename?: 'Payment';
   createDate?: Maybe<Scalars['Date']>;
   createor: Scalars['String'];
+  id: Scalars['ID'];
   itemId: Scalars['Int'];
-  onsaleType: Scalars['Int'];
+  onsaleType: OnsaleType;
   payDate?: Maybe<Scalars['Date']>;
   payStatus: Scalars['Int'];
   payUser?: Maybe<Scalars['String']>;
@@ -230,7 +234,7 @@ export type PriceParam = {
   initPrice: Scalars['Float'];
   itemId: Scalars['ID'];
   itemPriceType: ItemPriceType;
-  onsale: OnsaleType;
+  onsaleType: OnsaleType;
   startDate?: InputMaybe<Scalars['Date']>;
 };
 

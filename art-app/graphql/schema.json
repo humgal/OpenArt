@@ -44,6 +44,38 @@
             "deprecationReason": null
           },
           {
+            "name": "id",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "ID",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "itemId",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "Int",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "itemPriceType",
             "description": null,
             "args": [],
@@ -53,6 +85,22 @@
               "ofType": {
                 "kind": "ENUM",
                 "name": "ItemPriceType",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "onsaleType",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "ENUM",
+                "name": "OnsaleType",
                 "ofType": null
               }
             },
@@ -76,22 +124,6 @@
             "deprecationReason": null
           },
           {
-            "name": "temId",
-            "description": null,
-            "args": [],
-            "type": {
-              "kind": "NON_NULL",
-              "name": null,
-              "ofType": {
-                "kind": "SCALAR",
-                "name": "Int",
-                "ofType": null
-              }
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "total",
             "description": null,
             "args": [],
@@ -108,7 +140,7 @@
             "deprecationReason": null
           },
           {
-            "name": "user",
+            "name": "userId",
             "description": null,
             "args": [],
             "type": {
@@ -605,6 +637,18 @@
         "description": null,
         "fields": [
           {
+            "name": "collectionId",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "Int",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "createDate",
             "description": null,
             "args": [],
@@ -820,7 +864,7 @@
             "deprecationReason": null
           },
           {
-            "name": "onsale",
+            "name": "onsaleType",
             "description": null,
             "args": [],
             "type": {
@@ -1632,6 +1676,22 @@
             "deprecationReason": null
           },
           {
+            "name": "id",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "ID",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "itemId",
             "description": null,
             "args": [],
@@ -1655,8 +1715,8 @@
               "kind": "NON_NULL",
               "name": null,
               "ofType": {
-                "kind": "SCALAR",
-                "name": "Int",
+                "kind": "ENUM",
+                "name": "OnsaleType",
                 "ofType": null
               }
             },
@@ -1808,7 +1868,7 @@
             "deprecationReason": null
           },
           {
-            "name": "onsale",
+            "name": "onsaleType",
             "description": null,
             "type": {
               "kind": "NON_NULL",

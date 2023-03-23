@@ -9,13 +9,15 @@ import (
 )
 
 type Bid struct {
-	TemID         int           `json:"temId"`
+	ID            string        `json:"id"`
+	ItemID        int           `json:"itemId"`
 	ServiceFee    float64       `json:"serviceFee"`
 	Total         float64       `json:"total"`
-	User          string        `json:"user"`
+	UserID        string        `json:"userId"`
 	Username      string        `json:"username"`
 	BidDate       string        `json:"bidDate"`
 	ItemPriceType ItemPriceType `json:"itemPriceType"`
+	OnsaleType    OnsaleType    `json:"onsaleType"`
 	BidEndDate    *string       `json:"bidEndDate"`
 }
 
@@ -55,22 +57,23 @@ type FollowParam struct {
 }
 
 type Item struct {
-	ID          string     `json:"id"`
-	Name        string     `json:"name"`
-	Tag         *string    `json:"tag"`
-	Description *string    `json:"description"`
-	UploadURL   string     `json:"uploadUrl"`
-	SaleStatus  int        `json:"saleStatus"`
-	Price       *ItemPrice `json:"price"`
-	CreateorID  string     `json:"createorId"`
-	Creator     string     `json:"creator"`
-	CreateDate  *string    `json:"createDate"`
+	ID           string     `json:"id"`
+	Name         string     `json:"name"`
+	Tag          *string    `json:"tag"`
+	Description  *string    `json:"description"`
+	UploadURL    string     `json:"uploadUrl"`
+	SaleStatus   int        `json:"saleStatus"`
+	Price        *ItemPrice `json:"price"`
+	CreateorID   string     `json:"createorId"`
+	Creator      string     `json:"creator"`
+	CreateDate   *string    `json:"createDate"`
+	CollectionID *int       `json:"collectionId"`
 }
 
 type ItemPrice struct {
 	ItemID         string        `json:"itemId"`
 	ItemPriceType  ItemPriceType `json:"itemPriceType"`
-	Onsale         OnsaleType    `json:"onsale"`
+	OnsaleType     OnsaleType    `json:"onsaleType"`
 	InitPrice      float64       `json:"initPrice"`
 	ServiceFee     float64       `json:"serviceFee"`
 	StartDate      *string       `json:"startDate"`
@@ -103,21 +106,22 @@ type PayParam struct {
 }
 
 type Payment struct {
-	ItemID     int     `json:"itemId"`
-	OnsaleType int     `json:"onsaleType"`
-	Price      float64 `json:"price"`
-	ServiceFee float64 `json:"serviceFee"`
-	Createor   string  `json:"createor"`
-	CreateDate *string `json:"createDate"`
-	PayStatus  int     `json:"payStatus"`
-	PayUser    *string `json:"payUser"`
-	PayDate    *string `json:"payDate"`
+	ID         string     `json:"id"`
+	ItemID     int        `json:"itemId"`
+	OnsaleType OnsaleType `json:"onsaleType"`
+	Price      float64    `json:"price"`
+	ServiceFee float64    `json:"serviceFee"`
+	Createor   string     `json:"createor"`
+	CreateDate *string    `json:"createDate"`
+	PayStatus  int        `json:"payStatus"`
+	PayUser    *string    `json:"payUser"`
+	PayDate    *string    `json:"payDate"`
 }
 
 type PriceParam struct {
 	ItemID         string        `json:"itemId"`
 	ItemPriceType  ItemPriceType `json:"itemPriceType"`
-	Onsale         OnsaleType    `json:"onsale"`
+	OnsaleType     OnsaleType    `json:"onsaleType"`
 	InitPrice      float64       `json:"initPrice"`
 	StartDate      *string       `json:"startDate"`
 	ExpirationDate *string       `json:"expirationDate"`
