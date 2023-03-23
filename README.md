@@ -9,7 +9,7 @@
   - open expo app and test app
 
 - fullstack project for OpenArt
-  - design: figma community,clapy(plugin)
+  - design: figma community
   - frontend:typescript, react,react native ,graphql,expo
   - backend: golang,gqlgen,graphql-go,mysql,jwt,redis,Solidity,smart contract
 

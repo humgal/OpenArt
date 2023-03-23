@@ -5,3 +5,4 @@
 .metro-health-check*
 art-server/art-server
 .vscode/
+.go-fastdfs/
