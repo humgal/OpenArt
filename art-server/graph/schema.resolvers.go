@@ -61,6 +61,11 @@ func (r *mutationResolver) ConnectWallet(ctx context.Context, userID string, typ
 	panic(fmt.Errorf("not implemented: ConnectWallet - connectWallet"))
 }
 
+// Follow is the resolver for the follow field.
+func (r *mutationResolver) Follow(ctx context.Context, param *model.FollowParam) (*string, error) {
+	panic(fmt.Errorf("not implemented: Follow - follow"))
+}
+
 // SearchItems is the resolver for the searchItems field.
 func (r *queryResolver) SearchItems(ctx context.Context, param model.SearchParm) ([]*model.Item, error) {
 	panic(fmt.Errorf("not implemented: SearchItems - searchItems"))

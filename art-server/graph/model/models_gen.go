@@ -46,6 +46,14 @@ type Follow struct {
 	Status        bool   `json:"status"`
 }
 
+type FollowParam struct {
+	FollowerID    int    `json:"followerId"`
+	FollowerName  string `json:"followerName"`
+	FollowingID   int    `json:"followingId"`
+	FollowingName string `json:"followingName"`
+	Status        bool   `json:"status"`
+}
+
 type Item struct {
 	ID          string     `json:"id"`
 	Name        string     `json:"name"`

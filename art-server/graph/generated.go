@@ -106,6 +106,7 @@ type ComplexityRoot struct {
 		Checkout         func(childComplexity int, param *model.PayParam) int
 		ConnectWallet    func(childComplexity int, userID string, typeArg model.WalletType) int
 		CreateCollection func(childComplexity int, param model.CollectionParm) int
+		Follow           func(childComplexity int, param *model.FollowParam) int
 		Login            func(childComplexity int, input model.Login) int
 		MintArt          func(childComplexity int, items []string) int
 		NewUser          func(childComplexity int, user *model.NewUser) int
@@ -180,6 +181,7 @@ type MutationResolver interface {
 	CreateCollection(ctx context.Context, param model.CollectionParm) (*model.Collection, error)
 	Checkout(ctx context.Context, param *model.PayParam) (*string, error)
 	ConnectWallet(ctx context.Context, userID string, typeArg model.WalletType) (*model.Wallet, error)
+	Follow(ctx context.Context, param *model.FollowParam) (*string, error)
 }
 type QueryResolver interface {
 	SearchItems(ctx context.Context, param model.SearchParm) ([]*model.Item, error)
@@ -508,6 +510,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreateCollection(childComplexity, args["param"].(model.CollectionParm)), true
+
+	case "Mutation.follow":
+		if e.complexity.Mutation.Follow == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_follow_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.Follow(childComplexity, args["param"].(*model.FollowParam)), true
 
 	case "Mutation.login":
 		if e.complexity.Mutation.Login == nil {
@@ -878,6 +892,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputBidParm,
 		ec.unmarshalInputCollectionParm,
+		ec.unmarshalInputFollowParam,
 		ec.unmarshalInputLogin,
 		ec.unmarshalInputNewUser,
 		ec.unmarshalInputPayParam,
@@ -1028,6 +1043,21 @@ func (ec *executionContext) field_Mutation_createCollection_args(ctx context.Con
 	if tmp, ok := rawArgs["param"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("param"))
 		arg0, err = ec.unmarshalNCollectionParm2githubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐCollectionParm(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["param"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_follow_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *model.FollowParam
+	if tmp, ok := rawArgs["param"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("param"))
+		arg0, err = ec.unmarshalOFollowParam2ᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐFollowParam(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -3610,6 +3640,58 @@ func (ec *executionContext) fieldContext_Mutation_connectWallet(ctx context.Cont
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_connectWallet_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_follow(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_follow(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().Follow(rctx, fc.Args["param"].(*model.FollowParam))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_follow(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_follow_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -7300,6 +7382,66 @@ func (ec *executionContext) unmarshalInputCollectionParm(ctx context.Context, ob
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputFollowParam(ctx context.Context, obj interface{}) (model.FollowParam, error) {
+	var it model.FollowParam
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"followerId", "followerName", "followingId", "followingName", "status"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "followerId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("followerId"))
+			it.FollowerID, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "followerName":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("followerName"))
+			it.FollowerName, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "followingId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("followingId"))
+			it.FollowingID, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "followingName":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("followingName"))
+			it.FollowingName, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "status":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
+			it.Status, err = ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputLogin(ctx context.Context, obj interface{}) (model.Login, error) {
 	var it model.Login
 	asMap := map[string]interface{}{}
@@ -8194,6 +8336,12 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "follow":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_follow(ctx, field)
+			})
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -9545,6 +9693,14 @@ func (ec *executionContext) marshalODate2ᚖstring(ctx context.Context, sel ast.
 	}
 	res := graphql.MarshalString(*v)
 	return res
+}
+
+func (ec *executionContext) unmarshalOFollowParam2ᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐFollowParam(ctx context.Context, v interface{}) (*model.FollowParam, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputFollowParam(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOID2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {

@@ -31,6 +31,14 @@ type Follow {
   status: Boolean!
 }
 
+input FollowParam{
+   followerId: Int!
+  followerName: String!
+  followingId: Int!
+  followingName: String!
+  status: Boolean! 
+}
+
 input NewUser {
     username: String!
     password: String!
@@ -244,6 +252,7 @@ type Mutation {
   createCollection(param: CollectionParm!): Collection
   checkout(param:PayParam): String
   connectWallet(userId:ID!,type:walletType!):wallet!
+  follow(param:FollowParam): String
 }
 
 

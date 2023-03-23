@@ -62,6 +62,14 @@ export type Follow = {
   status: Scalars['Boolean'];
 };
 
+export type FollowParam = {
+  followerId: Scalars['Int'];
+  followerName: Scalars['String'];
+  followingId: Scalars['Int'];
+  followingName: Scalars['String'];
+  status: Scalars['Boolean'];
+};
+
 export type Item = {
   __typename?: 'Item';
   createDate?: Maybe<Scalars['Date']>;
@@ -117,6 +125,7 @@ export type Mutation = {
   checkout?: Maybe<Scalars['String']>;
   connectWallet: Wallet;
   createCollection?: Maybe<Collection>;
+  follow?: Maybe<Scalars['String']>;
   login: Scalars['String'];
   mintArt: Array<Item>;
   newUser: Scalars['String'];
@@ -140,6 +149,11 @@ export type MutationConnectWalletArgs = {
 
 export type MutationCreateCollectionArgs = {
   param: CollectionParm;
+};
+
+
+export type MutationFollowArgs = {
+  param?: InputMaybe<FollowParam>;
 };
 
 
