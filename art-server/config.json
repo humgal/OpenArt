@@ -1,0 +1,7 @@
+{
+    "Redishost":"127.0.0.1:6379",
+    "Redispasswd":"",
+    "Redisdb":0,
+    "Mysqlhost":"root:root@tcp(127.0.0.1:3306)/openart"
+
+}
