@@ -209,7 +209,7 @@ export enum OnsaleType {
 
 export type PayParam = {
   balance: Scalars['Float'];
-  id: Scalars['ID'];
+  itemId: Scalars['ID'];
   onsaleType: OnsaleType;
   payAmount: Scalars['Float'];
   serviceFee: Scalars['Float'];
@@ -328,6 +328,7 @@ export type User = {
   isCreator?: Maybe<Scalars['Boolean']>;
   joinDate?: Maybe<Scalars['Date']>;
   links?: Maybe<Array<Maybe<Link>>>;
+  password?: Maybe<Scalars['String']>;
   phone?: Maybe<Scalars['String']>;
   realname: Scalars['String'];
   username: Scalars['String'];
@@ -342,6 +343,7 @@ export enum VerifyType {
 
 export type UploadItem = {
   collection?: InputMaybe<Scalars['String']>;
+  createId: Scalars['ID'];
   creator: Scalars['String'];
   description?: InputMaybe<Scalars['String']>;
   name: Scalars['String'];

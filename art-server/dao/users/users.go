@@ -10,9 +10,23 @@ import (
 )
 
 type User struct {
-	ID       string `json:"id"`
-	Username string `json:"name"`
-	Password string `json:"password"`
+	ID           string  `json:"id"`
+	Realname     string  `json:"realname"`
+	Username     string  `json:"username"`
+	Password     string  `json:"password"`
+	Avatar       *string `json:"avatar"`
+	Phone        *string `json:"phone"`
+	Company      *string `json:"company"`
+	Email        *string `json:"email"`
+	Bio          *string `json:"bio"`
+	Img          *string `json:"img"`
+	JoinDate     *string `json:"joinDate"`
+	VerifyType   *int    `json:"verifyType"`
+	VerifyName   *string `json:"verifyName"`
+	IsCreator    *bool   `json:"isCreator"`
+	FollowerNum  *int    `json:"followerNum"`
+	FollowingNum *int    `json:"followingNum"`
+	Links        *string `json:"links"`
 }
 
 func (user *User) Create() {
@@ -22,6 +36,9 @@ func (user *User) Create() {
 		log.Fatal(err)
 	}
 	hashedPassword, err := HashPassword(user.Password)
+	if err != nil {
+		log.Fatal(err)
+	}
 	_, err = statement.Exec(user.Username, hashedPassword)
 	if err != nil {
 		log.Fatal(err)
@@ -66,26 +83,6 @@ func GetUserIdByUsername(username string) (int, error) {
 	}
 
 	return Id, nil
-}
-
-// GetUserByID check if a user exists in database and return the user object.
-func GetUsernameById(userId string) (User, error) {
-	statement, err := db.DB.Prepare("select Username from Users WHERE ID = ?")
-	if err != nil {
-		log.Fatal(err)
-	}
-	row := statement.QueryRow(userId)
-
-	var username string
-	err = row.Scan(&username)
-	if err != nil {
-		if err != sql.ErrNoRows {
-			log.Print(err)
-		}
-		return User{}, err
-	}
-
-	return User{ID: userId, Username: username}, nil
 }
 
 // HashPassword hashes given password

@@ -6,6 +6,7 @@ type User {
   id: ID!
   realname: String!
   username: String!
+  password: String
   avatar: String
   phone: String
   company: String
@@ -128,7 +129,7 @@ type wallet {
 }
 
 input PayParam {
-  item_id: ID!
+  itemId: ID!
   onsaleType: OnsaleType!
   balance: Float!
   serviceFee: Float!
@@ -136,6 +137,7 @@ input PayParam {
 }
 
 type Payment {
+  id: ID!
   itemId: Int!
   onsaleType: OnsaleType!
   price: Float!

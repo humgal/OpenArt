@@ -98,7 +98,7 @@ type NewUser struct {
 }
 
 type PayParam struct {
-	ID         string     `json:"id"`
+	ItemID     string     `json:"itemId"`
 	OnsaleType OnsaleType `json:"onsaleType"`
 	Balance    float64    `json:"balance"`
 	ServiceFee float64    `json:"serviceFee"`
@@ -154,6 +154,7 @@ type User struct {
 	ID           string      `json:"id"`
 	Realname     string      `json:"realname"`
 	Username     string      `json:"username"`
+	Password     *string     `json:"password"`
 	Avatar       *string     `json:"avatar"`
 	Phone        *string     `json:"phone"`
 	Company      *string     `json:"company"`
@@ -174,6 +175,7 @@ type UploadItem struct {
 	Tag         *string  `json:"tag"`
 	Description *string  `json:"description"`
 	UploadURL   []string `json:"uploadUrl"`
+	CreateID    string   `json:"createId"`
 	Creator     string   `json:"creator"`
 	SaleStatus  int      `json:"saleStatus"`
 	Collection  *string  `json:"collection"`
