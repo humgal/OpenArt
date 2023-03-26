@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/humgal/art-server/auth"
 	"github.com/humgal/art-server/dao/users"
 	"github.com/humgal/art-server/graph/model"
 	"github.com/humgal/art-server/util/jwt"
@@ -67,7 +68,12 @@ func (r *mutationResolver) RefreshToken(ctx context.Context, input model.Refresh
 
 // PlaceBid is the resolver for the placeBid field.
 func (r *mutationResolver) PlaceBid(ctx context.Context, bid *model.BidParm) (*model.Bid, error) {
-	panic(fmt.Errorf("not implemented: PlaceBid - placeBid"))
+	user := auth.ForContext(ctx)
+	if user == nil {
+		return &model.Bid{}, fmt.Errorf("access denied")
+	} else {
+		return &model.Bid{}, nil
+	}
 }
 
 // UploadArt is the resolver for the uploadArt field.

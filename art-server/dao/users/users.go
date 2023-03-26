@@ -72,7 +72,7 @@ func (user *User) Authenticate() bool {
 
 // GetUserIdByUsername check if a user exists in database by given username
 func GetUserIdByUsername(username string) (int, error) {
-	statement, err := db.DB.Prepare("select ID from Users WHERE Username = ?")
+	statement, err := db.DB.Prepare("select ID from User WHERE Username = ?")
 	if err != nil {
 		log.Println(err)
 	}
