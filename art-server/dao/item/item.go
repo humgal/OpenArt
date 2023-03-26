@@ -1,5 +1,7 @@
 package item
 
+import "github.com/shopspring/decimal"
+
 type Item struct {
 	ID           int        `json:"id"`
 	Name         string     `json:"name"`
@@ -18,12 +20,12 @@ type Item struct {
 }
 
 type ItemPrice struct {
-	ID             int     `json:"id"`
-	ItemID         int     `json:"itemId"`
-	ItemPriceType  int     `json:"itemPriceType"`
-	OnsaleType     int     `json:"onsaleType"`
-	InitPrice      float64 `json:"initPrice"`
-	ServiceFee     float64 `json:"serviceFee"`
-	StartDate      *string `json:"startDate"`
-	ExpirationDate *string `json:"expirationDate"`
+	ID             int             `json:"id"`
+	ItemID         int             `json:"itemId"`
+	ItemPriceType  int             `json:"itemPriceType"`
+	OnsaleType     int             `json:"onsaleType"`
+	InitPrice      decimal.Decimal `json:"initPrice"`
+	ServiceFee     decimal.Decimal `json:"serviceFee"`
+	StartDate      *string         `json:"startDate"`
+	ExpirationDate *string         `json:"expirationDate"`
 }

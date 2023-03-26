@@ -2,9 +2,11 @@ package users
 
 import (
 	"database/sql"
+	"errors"
 
 	"log"
 
+	"github.com/go-sql-driver/mysql"
 	"github.com/humgal/art-server/db"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -29,26 +31,29 @@ type User struct {
 	Links        *string `json:"links"`
 }
 
-func (user *User) Create() {
-	statement, err := db.DB.Prepare("INSERT INTO Users(Username,Password) VALUES(?,?)")
-	print(statement)
+func (user *User) Create() (bool, error) {
+	hashedPassword, _ := HashPassword(user.Password)
+
+	_, err := db.DB.Exec("INSERT INTO User(Username,Password,Email,Phone) VALUES(?,?,?,?)", user.Username, hashedPassword, user.Email, user.Phone)
 	if err != nil {
-		log.Fatal(err)
+		if errMySQL, ok := err.(*mysql.MySQLError); ok {
+			switch errMySQL.Number {
+			case 1062:
+				return false, errors.New("用户已存在")
+			default:
+				return false, err
+			}
+		}
+		return false, err
 	}
-	hashedPassword, err := HashPassword(user.Password)
-	if err != nil {
-		log.Fatal(err)
-	}
-	_, err = statement.Exec(user.Username, hashedPassword)
-	if err != nil {
-		log.Fatal(err)
-	}
+	return true, nil
+
 }
 
 func (user *User) Authenticate() bool {
-	statement, err := db.DB.Prepare("select Password from Users WHERE Username = ?")
+	statement, err := db.DB.Prepare("select Password from User WHERE Username = ?")
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 	row := statement.QueryRow(user.Username)
 
@@ -58,7 +63,7 @@ func (user *User) Authenticate() bool {
 		if err == sql.ErrNoRows {
 			return false
 		} else {
-			log.Fatal(err)
+			log.Println(err)
 		}
 	}
 
@@ -69,7 +74,7 @@ func (user *User) Authenticate() bool {
 func GetUserIdByUsername(username string) (int, error) {
 	statement, err := db.DB.Prepare("select ID from Users WHERE Username = ?")
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 	row := statement.QueryRow(username)
 

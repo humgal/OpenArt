@@ -6,24 +6,63 @@ package graph
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
+	"github.com/humgal/art-server/dao/users"
 	"github.com/humgal/art-server/graph/model"
+	"github.com/humgal/art-server/util/jwt"
 )
 
 // NewUser is the resolver for the newUser field.
 func (r *mutationResolver) NewUser(ctx context.Context, user *model.NewUser) (string, error) {
-	panic(fmt.Errorf("not implemented: NewUser - newUser"))
+	var userdao users.User
+	userdao.Username = user.Username
+	userdao.Password = user.Password
+	if user.Email != nil {
+		userdao.Email = user.Email
+	}
+	if user.Phone != nil {
+		userdao.Phone = user.Phone
+	}
+	res, err := userdao.Create()
+	if res {
+		return "success", nil
+	} else {
+		return "fail", err
+	}
+
 }
 
 // Login is the resolver for the login field.
 func (r *mutationResolver) Login(ctx context.Context, input model.Login) (string, error) {
-	panic(fmt.Errorf("not implemented: Login - login"))
+	var userdao users.User
+	userdao.Username = input.Username
+	userdao.Password = input.Password
+	correct := userdao.Authenticate()
+	if !correct {
+		// 1
+		return "", errors.New("用户密码不匹配")
+	}
+	token, err := jwt.GenerateToken(userdao.Username)
+	if err != nil {
+		return "", err
+	}
+	return token, nil
+
 }
 
 // RefreshToken is the resolver for the refreshToken field.
 func (r *mutationResolver) RefreshToken(ctx context.Context, input model.RefreshTokenInput) (string, error) {
-	panic(fmt.Errorf("not implemented: RefreshToken - refreshToken"))
+	username, err := jwt.ParseToken(input.Token)
+	if err != nil {
+		return "", fmt.Errorf("access denied")
+	}
+	token, err := jwt.GenerateToken(username)
+	if err != nil {
+		return "", err
+	}
+	return token, nil
 }
 
 // PlaceBid is the resolver for the placeBid field.
