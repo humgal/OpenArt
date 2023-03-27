@@ -12,6 +12,7 @@ import (
 	"github.com/humgal/art-server/auth"
 	"github.com/humgal/art-server/dao/users"
 	"github.com/humgal/art-server/graph/model"
+	"github.com/humgal/art-server/service"
 	"github.com/humgal/art-server/util/jwt"
 )
 
@@ -32,7 +33,16 @@ func (r *mutationResolver) NewUser(ctx context.Context, user *model.NewUser) (st
 	} else {
 		return "fail", err
 	}
+}
 
+// UpdateUser is the resolver for the updateUser field.
+func (r *mutationResolver) UpdateUser(ctx context.Context, user *model.UpdateUser) (string, error) {
+	username := auth.ForContext(ctx)
+	if username == nil {
+		return "fail", fmt.Errorf("access denied")
+	} else {
+		return service.UpdateUser(user)
+	}
 }
 
 // Login is the resolver for the login field.
@@ -50,7 +60,6 @@ func (r *mutationResolver) Login(ctx context.Context, input model.Login) (string
 		return "", err
 	}
 	return token, nil
-
 }
 
 // RefreshToken is the resolver for the refreshToken field.
@@ -72,68 +81,128 @@ func (r *mutationResolver) PlaceBid(ctx context.Context, bid *model.BidParm) (*m
 	if user == nil {
 		return &model.Bid{}, fmt.Errorf("access denied")
 	} else {
-		return &model.Bid{}, nil
+		return service.PlaceBid(bid)
 	}
 }
 
 // UploadArt is the resolver for the uploadArt field.
 func (r *mutationResolver) UploadArt(ctx context.Context, items []*model.UploadItem) ([]*model.Item, error) {
-	panic(fmt.Errorf("not implemented: UploadArt - uploadArt"))
+	user := auth.ForContext(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("access denied")
+	} else {
+		return service.UploadArt(items)
+	}
 }
 
 // SetPrice is the resolver for the setPrice field.
 func (r *mutationResolver) SetPrice(ctx context.Context, param *model.PriceParam) ([]*model.Item, error) {
-	panic(fmt.Errorf("not implemented: SetPrice - setPrice"))
+	user := auth.ForContext(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("access denied")
+	} else {
+		return service.SetPrice(param)
+	}
 }
 
 // MintArt is the resolver for the mintArt field.
 func (r *mutationResolver) MintArt(ctx context.Context, items []string) ([]*model.Item, error) {
-	panic(fmt.Errorf("not implemented: MintArt - mintArt"))
+	user := auth.ForContext(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("access denied")
+	} else {
+		return service.MintArt(items)
+	}
 }
 
 // CreateCollection is the resolver for the createCollection field.
 func (r *mutationResolver) CreateCollection(ctx context.Context, param model.CollectionParm) (*model.Collection, error) {
-	panic(fmt.Errorf("not implemented: CreateCollection - createCollection"))
+	user := auth.ForContext(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("access denied")
+	} else {
+		return service.CreateCollection(param)
+	}
 }
 
 // Checkout is the resolver for the checkout field.
 func (r *mutationResolver) Checkout(ctx context.Context, param *model.PayParam) (*string, error) {
-	panic(fmt.Errorf("not implemented: Checkout - checkout"))
+	user := auth.ForContext(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("access denied")
+	} else {
+		return service.Checkout(param)
+	}
 }
 
 // ConnectWallet is the resolver for the connectWallet field.
 func (r *mutationResolver) ConnectWallet(ctx context.Context, userID string, typeArg model.WalletType) (*model.Wallet, error) {
-	panic(fmt.Errorf("not implemented: ConnectWallet - connectWallet"))
+	user := auth.ForContext(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("access denied")
+	} else {
+		return service.ConnectWallet(userID, typeArg)
+	}
 }
 
 // Follow is the resolver for the follow field.
 func (r *mutationResolver) Follow(ctx context.Context, param *model.FollowParam) (*string, error) {
-	panic(fmt.Errorf("not implemented: Follow - follow"))
+	user := auth.ForContext(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("access denied")
+	} else {
+		return service.Follow(param)
+	}
 }
 
 // SearchItems is the resolver for the searchItems field.
 func (r *queryResolver) SearchItems(ctx context.Context, param model.SearchParm) ([]*model.Item, error) {
-	panic(fmt.Errorf("not implemented: SearchItems - searchItems"))
+	user := auth.ForContext(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("access denied")
+	} else {
+		return service.SearchItems(param)
+	}
 }
 
 // User is the resolver for the user field.
 func (r *queryResolver) User(ctx context.Context, id string) (*model.User, error) {
-	panic(fmt.Errorf("not implemented: User - user"))
+	user := auth.ForContext(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("access denied")
+	} else {
+		return service.User(id)
+	}
 }
 
 // Item is the resolver for the item field.
 func (r *queryResolver) Item(ctx context.Context, id string) (*model.Item, error) {
-	panic(fmt.Errorf("not implemented: Item - item"))
+	user := auth.ForContext(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("access denied")
+	} else {
+		return service.Item(id)
+	}
 }
 
 // Collection is the resolver for the collection field.
 func (r *queryResolver) Collection(ctx context.Context, createor string) (*model.Collection, error) {
-	panic(fmt.Errorf("not implemented: Collection - collection"))
+	user := auth.ForContext(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("access denied")
+	} else {
+		return service.Collection(createor)
+	}
 }
 
 // Items is the resolver for the items field.
 func (r *queryResolver) Items(ctx context.Context, createor *string, ids []string) ([]*model.Item, error) {
-	panic(fmt.Errorf("not implemented: Items - items"))
+	user := auth.ForContext(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("access denied")
+	} else {
+		return service.Items(createor, ids)
+	}
 }
 
 // SubscriptionPayment is the resolver for the subscriptionPayment field.
@@ -161,5 +230,5 @@ type subscriptionResolver struct{ *Resolver }
 //     it when you're done.
 //   - You have helper methods in this file. Move them out to keep these resolver files clean.
 func (r *subscriptionResolver) SubscriptionBid(ctx context.Context, itemid *string) (<-chan []*model.Bid, error) {
-	panic(fmt.Errorf("not implemented: SubscriptionBid - subscriptionBid"))
+	panic(fmt.Errorf("not implemented: SubscriptionPayment - subscriptionPayment"))
 }

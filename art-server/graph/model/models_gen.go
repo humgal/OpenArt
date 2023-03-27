@@ -150,6 +150,20 @@ type SubscriptionEvent struct {
 	Bids     []*Bid     `json:"bids"`
 }
 
+type UpdateUser struct {
+	Realname   string      `json:"realname"`
+	Password   *string     `json:"password"`
+	Avatar     *string     `json:"avatar"`
+	Phone      *string     `json:"phone"`
+	Company    *string     `json:"company"`
+	Email      *string     `json:"email"`
+	Bio        *string     `json:"bio"`
+	Img        *string     `json:"img"`
+	VerifyType *VerifyType `json:"verifyType"`
+	VerifyName *string     `json:"verifyName"`
+	Links      *string     `json:"links"`
+}
+
 type User struct {
 	ID           string      `json:"id"`
 	Realname     string      `json:"realname"`

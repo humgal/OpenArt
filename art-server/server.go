@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"log"
 	"net/http"
 	"os"
@@ -12,17 +11,16 @@ import (
 	"github.com/humgal/art-server/auth"
 	"github.com/humgal/art-server/db"
 	"github.com/humgal/art-server/graph"
-	"github.com/humgal/art-server/util/redis"
 )
 
 const defaultPort = "8000"
 
 func main() {
 
-	ctx := context.Background()
-	if redis.Rdb.Set(ctx, "key", "value", 0).Err() != nil {
-		panic("set redis error")
-	}
+	// ctx := context.Background()
+	// if redis.Rdb.Set(ctx, "key", "value", 0).Err() != nil {
+	// 	panic("set redis error")
+	// }
 	db.InitDB()
 	defer db.CloseDB()
 	db.Migrate()

@@ -135,6 +135,7 @@ export type Mutation = {
   placeBid?: Maybe<Bid>;
   refreshToken: Scalars['String'];
   setPrice: Array<Item>;
+  updateUser: Scalars['String'];
   uploadArt: Array<Item>;
 };
 
@@ -187,6 +188,11 @@ export type MutationRefreshTokenArgs = {
 
 export type MutationSetPriceArgs = {
   param?: InputMaybe<PriceParam>;
+};
+
+
+export type MutationUpdateUserArgs = {
+  user?: InputMaybe<UpdateUser>;
 };
 
 
@@ -313,6 +319,20 @@ export type SubscriptionEvent = {
   __typename?: 'SubscriptionEvent';
   bids?: Maybe<Array<Maybe<Bid>>>;
   payments?: Maybe<Array<Maybe<Payment>>>;
+};
+
+export type UpdateUser = {
+  avatar?: InputMaybe<Scalars['String']>;
+  bio?: InputMaybe<Scalars['String']>;
+  company?: InputMaybe<Scalars['String']>;
+  email?: InputMaybe<Scalars['String']>;
+  img?: InputMaybe<Scalars['String']>;
+  links?: InputMaybe<Scalars['String']>;
+  password?: InputMaybe<Scalars['String']>;
+  phone?: InputMaybe<Scalars['String']>;
+  realname: Scalars['String'];
+  verifyName?: InputMaybe<Scalars['String']>;
+  verifyType?: InputMaybe<VerifyType>;
 };
 
 export type User = {

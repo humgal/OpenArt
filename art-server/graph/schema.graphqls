@@ -21,6 +21,20 @@ type User {
   followingNum: Int
   links: [Link]
 }
+input UpdateUser{
+  realname: String!
+  password: String
+  avatar: String
+  phone: String
+  company: String
+  email: String
+  bio: String
+  img: String
+  verifyType: VerifyType
+  verifyName: String
+  links: String
+}
+
 
 # graph database
 type Follow {
@@ -250,6 +264,7 @@ type Query {
 
 type Mutation {
   newUser(user:NewUser): String!
+  updateUser(user:UpdateUser):String!
   login(input: Login!): String!
   refreshToken(input: RefreshTokenInput!): String!
   placeBid(bid: BidParm): Bid
