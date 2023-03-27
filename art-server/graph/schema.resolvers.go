@@ -14,6 +14,7 @@ import (
 	"github.com/humgal/art-server/graph/model"
 	"github.com/humgal/art-server/service"
 	"github.com/humgal/art-server/util/jwt"
+	"github.com/humgal/art-server/util/redis"
 )
 
 // NewUser is the resolver for the newUser field.
@@ -68,7 +69,9 @@ func (r *mutationResolver) RefreshToken(ctx context.Context, input model.Refresh
 	if err != nil {
 		return "", fmt.Errorf("access denied")
 	}
+
 	token, err := jwt.GenerateToken(username)
+	redis.Rdb.Del(redis.Rdb.Context(), input.Token)
 	if err != nil {
 		return "", err
 	}

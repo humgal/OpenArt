@@ -19,7 +19,7 @@ func Login(input model.Login) (string, error) {
 	panic("")
 }
 func PlaceBid(bid *model.BidParm) (*model.Bid, error) {
-	panic(fmt.Errorf("not implemented: PlaceBid - PlaceBid"))
+	return &model.Bid{}, nil
 }
 func UpdateUser(user *model.UpdateUser) (string, error) {
 	panic(fmt.Errorf("not implemented: UpdateUser - updateUser"))
