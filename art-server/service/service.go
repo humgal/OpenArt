@@ -15,9 +15,6 @@ func CheckUser(username string) (int, error) {
 	panic("")
 }
 
-func Login(input model.Login) (string, error) {
-	panic("")
-}
 func PlaceBid(bid *model.BidParm) (*model.Bid, error) {
 	return &model.Bid{}, nil
 }

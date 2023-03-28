@@ -31,6 +31,13 @@ type User struct {
 	Links        *string `json:"links"`
 }
 
+type LoginStatus struct {
+	LoginTime string
+	IP        string
+	IPCountry string
+	TodayNum  int
+}
+
 func (user *User) Create() (bool, error) {
 	hashedPassword, _ := HashPassword(user.Password)
 

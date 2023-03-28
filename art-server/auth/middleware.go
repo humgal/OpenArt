@@ -3,12 +3,15 @@ package auth
 import (
 	"context"
 	"net/http"
+	"time"
 
 	"github.com/humgal/art-server/dao/users"
+	"github.com/humgal/art-server/util"
 	"github.com/humgal/art-server/util/jwt"
 )
 
 var userCtxKey = &contextKey{"user"}
+var ipCtxKey = &contextKey{"ip"}
 
 type contextKey struct {
 	name string
@@ -21,6 +24,11 @@ func Middleware() func(http.Handler) http.Handler {
 
 			// Allow unauthenticated users in
 			if header == "" {
+				ip, err := util.GetIP(r)
+				if err == nil {
+					ipstat := users.LoginStatus{IP: ip, LoginTime: time.Now().Format("2006-01-02 15:04:05")}
+					r = r.WithContext(context.WithValue(r.Context(), ipCtxKey, &ipstat))
+				}
 				next.ServeHTTP(w, r)
 				return
 			}
@@ -50,5 +58,10 @@ func Middleware() func(http.Handler) http.Handler {
 // ForContext finds the user from the context. REQUIRES Middleware to have run.
 func ForContext(ctx context.Context) *users.User {
 	raw, _ := ctx.Value(userCtxKey).(*users.User)
+	return raw
+}
+
+func IpContext(ctx context.Context) *users.LoginStatus {
+	raw, _ := ctx.Value(ipCtxKey).(*users.LoginStatus)
 	return raw
 }

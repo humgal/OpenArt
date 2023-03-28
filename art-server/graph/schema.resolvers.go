@@ -6,8 +6,10 @@ package graph
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/humgal/art-server/auth"
 	"github.com/humgal/art-server/dao/users"
@@ -48,18 +50,43 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, user *model.UpdateUse
 
 // Login is the resolver for the login field.
 func (r *mutationResolver) Login(ctx context.Context, input model.Login) (string, error) {
+	loginstat := auth.IpContext(ctx)
+	redisloginstat := users.LoginStatus{}
+	var loginstatbyte []byte
+	redis.Rdb.HGet(redis.Rdb.Context(), "openart:user:login", input.Username).Scan(&loginstatbyte)
+	json.Unmarshal(loginstatbyte, &redisloginstat)
+
+	if redisloginstat.TodayNum > 2 {
+		return "", errors.New("login forbidden")
+	}
+	const longForm = "2006-01-02 15:04:05"
+
+	redisloginstattime, _ := time.Parse(longForm, redisloginstat.LoginTime)
+	timeStr := time.Now().Format("2006-01-02")
+	fmt.Println("timeStr:", timeStr)
+	t, _ := time.Parse("2006-01-02", timeStr)
+	if redisloginstattime.Before(t) {
+		loginstat.TodayNum = 1
+	} else {
+		loginstat.TodayNum = redisloginstat.TodayNum + 1
+	}
+
 	var userdao users.User
 	userdao.Username = input.Username
 	userdao.Password = input.Password
 	correct := userdao.Authenticate()
 	if !correct {
 		// 1
-		return "", errors.New("用户密码不匹配")
+		return "", errors.New("username and password unmatch")
 	}
+
 	token, err := jwt.GenerateToken(userdao.Username)
 	if err != nil {
 		return "", err
 	}
+	statbyte, _ := json.Marshal(loginstat)
+
+	redis.Rdb.HSet(redis.Rdb.Context(), "openart:user:login", input.Username, statbyte).Result()
 	return token, nil
 }
 
