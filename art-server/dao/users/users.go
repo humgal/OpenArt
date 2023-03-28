@@ -77,26 +77,6 @@ func (user *User) Authenticate() bool {
 	return CheckPasswordHash(user.Password, hashedPassword)
 }
 
-// GetUserIdByUsername check if a user exists in database by given username
-func GetUserIdByUsername(username string) (int, error) {
-	statement, err := db.DB.Prepare("select ID from User WHERE Username = ?")
-	if err != nil {
-		log.Println(err)
-	}
-	row := statement.QueryRow(username)
-
-	var Id int
-	err = row.Scan(&Id)
-	if err != nil {
-		if err != sql.ErrNoRows {
-			log.Print(err)
-		}
-		return 0, err
-	}
-
-	return Id, nil
-}
-
 // HashPassword hashes given password
 func HashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
@@ -107,4 +87,9 @@ func HashPassword(password string) (string, error) {
 func CheckPasswordHash(password, hash string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	return err == nil
+}
+
+func (user *User) UpdateUser() error {
+	_, err := db.DB.Exec(db.GenUpdateSql(user, "user") + "where username='" + user.Username + "'")
+	return err
 }

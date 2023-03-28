@@ -3,23 +3,29 @@ package service
 import (
 	"fmt"
 
+	"github.com/humgal/art-server/dao/users"
 	"github.com/humgal/art-server/graph/model"
 )
 
-// add user in database and add userlist in redis
-func NewUser(user *model.NewUser) (string, error) {
-	panic("")
-}
-
-func CheckUser(username string) (int, error) {
-	panic("")
-}
-
-func PlaceBid(bid *model.BidParm) (*model.Bid, error) {
-	return &model.Bid{}, nil
-}
 func UpdateUser(user *model.UpdateUser) (string, error) {
-	panic(fmt.Errorf("not implemented: UpdateUser - updateUser"))
+	var dao users.User
+	dao.Username = "dliang"
+	dao.Password = "password"
+	dao.Realname = user.Realname
+	dao.Avatar = user.Avatar
+	dao.Phone = user.Phone
+	dao.Company = user.Company
+	dao.Email = user.Email
+	dao.Bio = user.Bio
+	dao.Img = user.Img
+	dao.VerifyName = user.VerifyName
+	dao.Links = user.Links
+
+	err := dao.UpdateUser()
+	if err != nil {
+		return "update user fail", err
+	}
+	return "update user success", err
 }
 
 // UploadArt is the resolver for the uploadArt field.
@@ -35,6 +41,11 @@ func SetPrice(param *model.PriceParam) ([]*model.Item, error) {
 // MintArt is the resolver for the mintArt field.
 func MintArt(items []string) ([]*model.Item, error) {
 	panic(fmt.Errorf("not implemented: MintArt - mintArt"))
+}
+
+func PlaceBid(bid *model.BidParm) (*model.Bid, error) {
+
+	return &model.Bid{}, nil
 }
 
 // CreateCollection is the resolver for the createCollection field.
