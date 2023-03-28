@@ -7,10 +7,10 @@ import (
 	"github.com/humgal/art-server/graph/model"
 )
 
-func UpdateUser(user *model.UpdateUser) (string, error) {
+func UpdateUser(user *model.UpdateUser, username string) (string, error) {
 	var dao users.User
-	dao.Username = "dliang"
-	dao.Password = "password"
+	dao.Username = username
+
 	dao.Realname = user.Realname
 	dao.Avatar = user.Avatar
 	dao.Phone = user.Phone

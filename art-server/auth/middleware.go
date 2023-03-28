@@ -21,14 +21,14 @@ func Middleware() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			header := r.Header.Get("Authorization")
-
+			ip, err := util.GetIP(r)
+			if err == nil {
+				ipstat := users.LoginStatus{IP: ip, LoginTime: time.Now().Format("2006-01-02 15:04:05")}
+				r = r.WithContext(context.WithValue(r.Context(), ipCtxKey, &ipstat))
+			}
 			// Allow unauthenticated users in
 			if header == "" {
-				ip, err := util.GetIP(r)
-				if err == nil {
-					ipstat := users.LoginStatus{IP: ip, LoginTime: time.Now().Format("2006-01-02 15:04:05")}
-					r = r.WithContext(context.WithValue(r.Context(), ipCtxKey, &ipstat))
-				}
+
 				next.ServeHTTP(w, r)
 				return
 			}

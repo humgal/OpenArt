@@ -44,7 +44,7 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, user *model.UpdateUse
 	if username == nil {
 		return "fail", fmt.Errorf("access denied")
 	} else {
-		return service.UpdateUser(user)
+		return service.UpdateUser(user, username.Username)
 	}
 }
 
