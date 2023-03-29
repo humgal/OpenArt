@@ -111,11 +111,10 @@ type ComplexityRoot struct {
 		CreateCollection func(childComplexity int, param model.CollectionParm) int
 		Follow           func(childComplexity int, param *model.FollowParam) int
 		Login            func(childComplexity int, input model.Login) int
-		MintArt          func(childComplexity int, items []string) int
 		NewUser          func(childComplexity int, user *model.NewUser) int
 		PlaceBid         func(childComplexity int, bid *model.BidParm) int
 		RefreshToken     func(childComplexity int, input model.RefreshTokenInput) int
-		SetPrice         func(childComplexity int, param *model.PriceParam) int
+		SetPriceAndMint  func(childComplexity int, param *model.PriceParam) int
 		UpdateUser       func(childComplexity int, user *model.UpdateUser) int
 		UploadArt        func(childComplexity int, items []*model.UploadItem) int
 	}
@@ -183,8 +182,7 @@ type MutationResolver interface {
 	RefreshToken(ctx context.Context, input model.RefreshTokenInput) (string, error)
 	PlaceBid(ctx context.Context, bid *model.BidParm) (*model.Bid, error)
 	UploadArt(ctx context.Context, items []*model.UploadItem) ([]*model.Item, error)
-	SetPrice(ctx context.Context, param *model.PriceParam) ([]*model.Item, error)
-	MintArt(ctx context.Context, items []string) ([]*model.Item, error)
+	SetPriceAndMint(ctx context.Context, param *model.PriceParam) (bool, error)
 	CreateCollection(ctx context.Context, param model.CollectionParm) (*model.Collection, error)
 	Checkout(ctx context.Context, param *model.PayParam) (*string, error)
 	ConnectWallet(ctx context.Context, userID string, typeArg model.WalletType) (*model.Wallet, error)
@@ -563,18 +561,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.Login(childComplexity, args["input"].(model.Login)), true
 
-	case "Mutation.mintArt":
-		if e.complexity.Mutation.MintArt == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_mintArt_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.MintArt(childComplexity, args["items"].([]string)), true
-
 	case "Mutation.newUser":
 		if e.complexity.Mutation.NewUser == nil {
 			break
@@ -611,17 +597,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.RefreshToken(childComplexity, args["input"].(model.RefreshTokenInput)), true
 
-	case "Mutation.setPrice":
-		if e.complexity.Mutation.SetPrice == nil {
+	case "Mutation.setPriceAndMint":
+		if e.complexity.Mutation.SetPriceAndMint == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_setPrice_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_setPriceAndMint_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.SetPrice(childComplexity, args["param"].(*model.PriceParam)), true
+		return e.complexity.Mutation.SetPriceAndMint(childComplexity, args["param"].(*model.PriceParam)), true
 
 	case "Mutation.updateUser":
 		if e.complexity.Mutation.UpdateUser == nil {
@@ -1136,21 +1122,6 @@ func (ec *executionContext) field_Mutation_login_args(ctx context.Context, rawAr
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_mintArt_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 []string
-	if tmp, ok := rawArgs["items"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("items"))
-		arg0, err = ec.unmarshalOID2ᚕstringᚄ(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["items"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field_Mutation_newUser_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1196,7 +1167,7 @@ func (ec *executionContext) field_Mutation_refreshToken_args(ctx context.Context
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_setPrice_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_setPriceAndMint_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 *model.PriceParam
@@ -3577,8 +3548,8 @@ func (ec *executionContext) fieldContext_Mutation_uploadArt(ctx context.Context,
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_setPrice(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_setPrice(ctx, field)
+func (ec *executionContext) _Mutation_setPriceAndMint(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_setPriceAndMint(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -3591,7 +3562,7 @@ func (ec *executionContext) _Mutation_setPrice(ctx context.Context, field graphq
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().SetPrice(rctx, fc.Args["param"].(*model.PriceParam))
+		return ec.resolvers.Mutation().SetPriceAndMint(rctx, fc.Args["param"].(*model.PriceParam))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3603,43 +3574,19 @@ func (ec *executionContext) _Mutation_setPrice(ctx context.Context, field graphq
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model.Item)
+	res := resTmp.(bool)
 	fc.Result = res
-	return ec.marshalNItem2ᚕᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐItemᚄ(ctx, field.Selections, res)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Mutation_setPrice(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Mutation_setPriceAndMint(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Mutation",
 		Field:      field,
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Item_id(ctx, field)
-			case "name":
-				return ec.fieldContext_Item_name(ctx, field)
-			case "tag":
-				return ec.fieldContext_Item_tag(ctx, field)
-			case "description":
-				return ec.fieldContext_Item_description(ctx, field)
-			case "uploadUrl":
-				return ec.fieldContext_Item_uploadUrl(ctx, field)
-			case "saleStatus":
-				return ec.fieldContext_Item_saleStatus(ctx, field)
-			case "price":
-				return ec.fieldContext_Item_price(ctx, field)
-			case "createorId":
-				return ec.fieldContext_Item_createorId(ctx, field)
-			case "creator":
-				return ec.fieldContext_Item_creator(ctx, field)
-			case "createDate":
-				return ec.fieldContext_Item_createDate(ctx, field)
-			case "collectionId":
-				return ec.fieldContext_Item_collectionId(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Item", field.Name)
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	defer func() {
@@ -3649,86 +3596,7 @@ func (ec *executionContext) fieldContext_Mutation_setPrice(ctx context.Context, 
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_setPrice_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_mintArt(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_mintArt(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().MintArt(rctx, fc.Args["items"].([]string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*model.Item)
-	fc.Result = res
-	return ec.marshalNItem2ᚕᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐItemᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_mintArt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Item_id(ctx, field)
-			case "name":
-				return ec.fieldContext_Item_name(ctx, field)
-			case "tag":
-				return ec.fieldContext_Item_tag(ctx, field)
-			case "description":
-				return ec.fieldContext_Item_description(ctx, field)
-			case "uploadUrl":
-				return ec.fieldContext_Item_uploadUrl(ctx, field)
-			case "saleStatus":
-				return ec.fieldContext_Item_saleStatus(ctx, field)
-			case "price":
-				return ec.fieldContext_Item_price(ctx, field)
-			case "createorId":
-				return ec.fieldContext_Item_createorId(ctx, field)
-			case "creator":
-				return ec.fieldContext_Item_creator(ctx, field)
-			case "createDate":
-				return ec.fieldContext_Item_createDate(ctx, field)
-			case "collectionId":
-				return ec.fieldContext_Item_collectionId(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Item", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_mintArt_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Mutation_setPriceAndMint_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -8805,19 +8673,10 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "setPrice":
+		case "setPriceAndMint":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_setPrice(ctx, field)
-			})
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "mintArt":
-
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_mintArt(ctx, field)
+				return ec._Mutation_setPriceAndMint(ctx, field)
 			})
 
 			if out.Values[i] == graphql.Null {

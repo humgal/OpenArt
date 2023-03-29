@@ -269,8 +269,7 @@ type Mutation {
   refreshToken(input: RefreshTokenInput!): String!
   placeBid(bid: BidParm): Bid
   uploadArt(items:[uploadItem!]): [Item!]!
-  setPrice(param:PriceParam): [Item!]!
-  mintArt(items:[ID!]): [Item!]!
+  setPriceAndMint(param:PriceParam): Boolean!
   createCollection(param: CollectionParm!): Collection
   checkout(param:PayParam): String
   connectWallet(userId:ID!,type:walletType!):wallet!

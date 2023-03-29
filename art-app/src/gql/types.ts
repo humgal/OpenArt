@@ -130,11 +130,10 @@ export type Mutation = {
   createCollection?: Maybe<Collection>;
   follow?: Maybe<Scalars['String']>;
   login: Scalars['String'];
-  mintArt: Array<Item>;
   newUser: Scalars['String'];
   placeBid?: Maybe<Bid>;
   refreshToken: Scalars['String'];
-  setPrice: Array<Item>;
+  setPriceAndMint: Scalars['Boolean'];
   updateUser: Scalars['String'];
   uploadArt: Array<Item>;
 };
@@ -166,11 +165,6 @@ export type MutationLoginArgs = {
 };
 
 
-export type MutationMintArtArgs = {
-  items?: InputMaybe<Array<Scalars['ID']>>;
-};
-
-
 export type MutationNewUserArgs = {
   user?: InputMaybe<NewUser>;
 };
@@ -186,7 +180,7 @@ export type MutationRefreshTokenArgs = {
 };
 
 
-export type MutationSetPriceArgs = {
+export type MutationSetPriceAndMintArgs = {
   param?: InputMaybe<PriceParam>;
 };
 
@@ -369,7 +363,7 @@ export type UploadItem = {
   name: Scalars['String'];
   saleStatus: Scalars['Int'];
   tag?: InputMaybe<Scalars['String']>;
-  uploadUrl: Array<Scalars['String']>;
+  uploadUrl: Scalars['String'];
 };
 
 export type Wallet = {

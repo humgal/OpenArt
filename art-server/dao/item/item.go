@@ -8,7 +8,7 @@ type Item struct {
 	Tag          *string    `json:"tag"`
 	Description  *string    `json:"description"`
 	UploadUrl    string     `json:"uploadUrl"`
-	SalesStatus  int        `json:"saleStatus"`
+	SaleStatus   int        `json:"saleStatus"`
 	Price        *ItemPrice `json:"price"`
 	CreatorId    string     `json:"createorId"`
 	Creator      string     `json:"creator"`
@@ -20,10 +20,10 @@ type Item struct {
 }
 
 type ItemPrice struct {
-	ID             int             `json:"id"`
-	ItemID         int             `json:"itemId"`
+	Id             int             `json:"id"`
+	ItemId         int             `json:"itemId"`
 	ItemPriceType  int             `json:"itemPriceType"`
-	OnsaleType     int             `json:"onsaleType"`
+	OnsaleType     string          `json:"onsaleType"`
 	InitPrice      decimal.Decimal `json:"initPrice"`
 	ServiceFee     decimal.Decimal `json:"serviceFee"`
 	StartDate      *string         `json:"startDate"`

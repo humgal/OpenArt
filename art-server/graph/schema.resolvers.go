@@ -125,24 +125,15 @@ func (r *mutationResolver) UploadArt(ctx context.Context, items []*model.UploadI
 	}
 }
 
-// SetPrice is the resolver for the setPrice field.
-func (r *mutationResolver) SetPrice(ctx context.Context, param *model.PriceParam) ([]*model.Item, error) {
+// SetPriceAndMint is the resolver for the setPriceAndMint field.
+func (r *mutationResolver) SetPriceAndMint(ctx context.Context, param *model.PriceParam) (bool, error) {
 	user := auth.ForContext(ctx)
 	if user == nil {
-		return nil, fmt.Errorf("access denied")
+		return false, fmt.Errorf("access denied")
 	} else {
 		return service.SetPrice(param)
 	}
-}
 
-// MintArt is the resolver for the mintArt field.
-func (r *mutationResolver) MintArt(ctx context.Context, items []string) ([]*model.Item, error) {
-	user := auth.ForContext(ctx)
-	if user == nil {
-		return nil, fmt.Errorf("access denied")
-	} else {
-		return service.MintArt(items)
-	}
 }
 
 // CreateCollection is the resolver for the createCollection field.
