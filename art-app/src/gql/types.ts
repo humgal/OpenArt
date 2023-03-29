@@ -131,7 +131,7 @@ export type Mutation = {
   follow?: Maybe<Scalars['String']>;
   login: Scalars['String'];
   newUser: Scalars['String'];
-  placeBid?: Maybe<Bid>;
+  placeBid: Scalars['Boolean'];
   refreshToken: Scalars['String'];
   setPriceAndMint: Scalars['Boolean'];
   updateUser: Scalars['String'];
@@ -254,7 +254,7 @@ export type Query = {
 
 
 export type QueryCollectionArgs = {
-  createor: Scalars['String'];
+  creator: Scalars['String'];
 };
 
 
@@ -264,8 +264,7 @@ export type QueryItemArgs = {
 
 
 export type QueryItemsArgs = {
-  createor?: InputMaybe<Scalars['String']>;
-  ids?: InputMaybe<Array<Scalars['ID']>>;
+  createor: Scalars['String'];
 };
 
 

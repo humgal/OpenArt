@@ -180,7 +180,7 @@ type MutationResolver interface {
 	UpdateUser(ctx context.Context, user *model.UpdateUser) (string, error)
 	Login(ctx context.Context, input model.Login) (string, error)
 	RefreshToken(ctx context.Context, input model.RefreshTokenInput) (string, error)
-	PlaceBid(ctx context.Context, bid *model.BidParm) (*model.Bid, error)
+	PlaceBid(ctx context.Context, bid *model.BidParm) (bool, error)
 	UploadArt(ctx context.Context, items []*model.UploadItem) ([]*model.Item, error)
 	SetPriceAndMint(ctx context.Context, param *model.PriceParam) (bool, error)
 	CreateCollection(ctx context.Context, param model.CollectionParm) (bool, error)
@@ -3407,11 +3407,14 @@ func (ec *executionContext) _Mutation_placeBid(ctx context.Context, field graphq
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.Bid)
+	res := resTmp.(bool)
 	fc.Result = res
-	return ec.marshalOBid2ᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐBid(ctx, field.Selections, res)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_placeBid(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3421,29 +3424,7 @@ func (ec *executionContext) fieldContext_Mutation_placeBid(ctx context.Context, 
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Bid_id(ctx, field)
-			case "itemId":
-				return ec.fieldContext_Bid_itemId(ctx, field)
-			case "serviceFee":
-				return ec.fieldContext_Bid_serviceFee(ctx, field)
-			case "total":
-				return ec.fieldContext_Bid_total(ctx, field)
-			case "userId":
-				return ec.fieldContext_Bid_userId(ctx, field)
-			case "username":
-				return ec.fieldContext_Bid_username(ctx, field)
-			case "bidDate":
-				return ec.fieldContext_Bid_bidDate(ctx, field)
-			case "itemPriceType":
-				return ec.fieldContext_Bid_itemPriceType(ctx, field)
-			case "onsaleType":
-				return ec.fieldContext_Bid_onsaleType(ctx, field)
-			case "bidEndDate":
-				return ec.fieldContext_Bid_bidEndDate(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Bid", field.Name)
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	defer func() {
@@ -8646,6 +8627,9 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 				return ec._Mutation_placeBid(ctx, field)
 			})
 
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "uploadArt":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {

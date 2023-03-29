@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/humgal/art-server/dao/bid"
 	"github.com/humgal/art-server/dao/collection"
 	"github.com/humgal/art-server/dao/item"
 	"github.com/humgal/art-server/dao/users"
@@ -86,11 +87,7 @@ func UploadArt(items []*model.UploadItem) ([]*model.Item, error) {
 func SetPrice(param *model.PriceParam) (bool, error) {
 	var price item.ItemPrice
 	price.InitPrice = decimal.NewFromFloat(param.InitPrice)
-	id, err := strconv.ParseInt(param.ItemID, 0, 32)
-	if err != nil {
-		util.Logger.Println(err)
-	}
-	price.ItemId = int(id)
+
 	if param.ItemPriceType == "FIXED" {
 		price.ItemPriceType = 1
 	} else {
@@ -103,14 +100,32 @@ func SetPrice(param *model.PriceParam) (bool, error) {
 		util.Logger.Println(err)
 	}
 	insertid, _ := res.LastInsertId()
-	db.DB.Exec("update item set price=" + strconv.Itoa(int(insertid)))
+	db.DB.Exec("update item set price=" + strconv.Itoa(int(insertid)) + " where id=" + param.ItemID)
 
 	return true, err
 }
 
-func PlaceBid(bid *model.BidParm) (*model.Bid, error) {
+func PlaceBid(param *model.BidParm, username string) (bool, error) {
+	var biddao bid.Bid
+	biddao.ItemId = param.ItemID
+	biddao.Total = decimal.NewFromFloat(param.Total)
+	biddao.Username = username
+	row := db.DB.QueryRow("select service_fee,item_price_type,onsale_type,start_date,expiration_date from item_price left join item on item_price.id=item.price where item.id=" + strconv.Itoa(param.ItemID))
+	var startdatestr string
+	var expdate int
 
-	return &model.Bid{}, nil
+	row.Scan(&biddao.ServiceFee, &biddao.ItemPriceType, &biddao.OnsaleType, &startdatestr, &expdate)
+	t, _ := time.Parse("2006-01-02 15:04:05", startdatestr)
+	t = t.Add(time.Duration(expdate))
+	enddate := t.Format("2006-01-02 15:04:05")
+	biddao.BidEndDate = &enddate
+	biddao.BidDate = time.Now().Format("2006-01-02 15:04:05")
+	_, err := db.DB.Exec(db.GenInsertSql(biddao, "bid"))
+	if err != nil {
+		util.Logger.Println(err)
+		return false, err
+	}
+	return true, nil
 }
 
 // CreateCollection is the resolver for the createCollection field.

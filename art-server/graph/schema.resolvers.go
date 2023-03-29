@@ -56,9 +56,6 @@ func (r *mutationResolver) Login(ctx context.Context, input model.Login) (string
 	redis.Rdb.HGet(redis.Rdb.Context(), "openart:user:login", input.Username).Scan(&loginstatbyte)
 	json.Unmarshal(loginstatbyte, &redisloginstat)
 
-	if redisloginstat.TodayNum > 2 {
-		return "", errors.New("login forbidden")
-	}
 	const longForm = "2006-01-02 15:04:05"
 
 	redisloginstattime, _ := time.Parse(longForm, redisloginstat.LoginTime)
@@ -69,6 +66,9 @@ func (r *mutationResolver) Login(ctx context.Context, input model.Login) (string
 		loginstat.TodayNum = 1
 	} else {
 		loginstat.TodayNum = redisloginstat.TodayNum + 1
+		if redisloginstat.TodayNum > 2 {
+			return "", errors.New("login forbidden")
+		}
 	}
 
 	var userdao users.User
@@ -106,12 +106,12 @@ func (r *mutationResolver) RefreshToken(ctx context.Context, input model.Refresh
 }
 
 // PlaceBid is the resolver for the placeBid field.
-func (r *mutationResolver) PlaceBid(ctx context.Context, bid *model.BidParm) (*model.Bid, error) {
+func (r *mutationResolver) PlaceBid(ctx context.Context, bid *model.BidParm) (bool, error) {
 	user := auth.ForContext(ctx)
 	if user == nil {
-		return &model.Bid{}, fmt.Errorf("access denied")
+		return false, fmt.Errorf("access denied")
 	} else {
-		return service.PlaceBid(bid)
+		return service.PlaceBid(bid, user.Username)
 	}
 }
 

@@ -7,8 +7,8 @@ import (
 )
 
 type Bid struct {
-	ID            int             `json:"id"`
-	ItemID        int             `json:"itemId"`
+	Id            int             `json:"id"`
+	ItemId        int             `json:"itemId"`
 	ServiceFee    decimal.Decimal `json:"serviceFee"`
 	Total         decimal.Decimal `json:"total"`
 	UserID        string          `json:"userId"`

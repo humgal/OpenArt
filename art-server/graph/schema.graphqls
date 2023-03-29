@@ -267,7 +267,7 @@ type Mutation {
   updateUser(user:UpdateUser):String!
   login(input: Login!): String!
   refreshToken(input: RefreshTokenInput!): String!
-  placeBid(bid: BidParm): Bid
+  placeBid(bid: BidParm): Boolean! 
   uploadArt(items:[uploadItem!]): [Item!]!
   setPriceAndMint(param:PriceParam): Boolean!
   createCollection(param: CollectionParm!): Boolean! 

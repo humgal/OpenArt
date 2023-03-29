@@ -21,7 +21,6 @@ type Item struct {
 
 type ItemPrice struct {
 	Id             int             `json:"id"`
-	ItemId         int             `json:"itemId"`
 	ItemPriceType  int             `json:"itemPriceType"`
 	OnsaleType     string          `json:"onsaleType"`
 	InitPrice      decimal.Decimal `json:"initPrice"`
