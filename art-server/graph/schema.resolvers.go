@@ -133,14 +133,13 @@ func (r *mutationResolver) SetPriceAndMint(ctx context.Context, param *model.Pri
 	} else {
 		return service.SetPrice(param)
 	}
-
 }
 
 // CreateCollection is the resolver for the createCollection field.
-func (r *mutationResolver) CreateCollection(ctx context.Context, param model.CollectionParm) (*model.Collection, error) {
+func (r *mutationResolver) CreateCollection(ctx context.Context, param model.CollectionParm) (bool, error) {
 	user := auth.ForContext(ctx)
 	if user == nil {
-		return nil, fmt.Errorf("access denied")
+		return false, fmt.Errorf("access denied")
 	} else {
 		return service.CreateCollection(param)
 	}

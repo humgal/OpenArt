@@ -3,7 +3,9 @@ package service
 import (
 	"fmt"
 	"strconv"
+	"time"
 
+	"github.com/humgal/art-server/dao/collection"
 	"github.com/humgal/art-server/dao/item"
 	"github.com/humgal/art-server/dao/users"
 	"github.com/humgal/art-server/db"
@@ -94,19 +96,24 @@ func SetPrice(param *model.PriceParam) (bool, error) {
 	return true, err
 }
 
-// MintArt is the resolver for the mintArt field.
-func MintArt(items []string) ([]*model.Item, error) {
-	panic(fmt.Errorf("not implemented: MintArt - mintArt"))
-}
-
 func PlaceBid(bid *model.BidParm) (*model.Bid, error) {
 
 	return &model.Bid{}, nil
 }
 
 // CreateCollection is the resolver for the createCollection field.
-func CreateCollection(param model.CollectionParm) (*model.Collection, error) {
-	panic(fmt.Errorf("not implemented: CreateCollection - createCollection"))
+func CreateCollection(param model.CollectionParm) (bool, error) {
+	var coll collection.Collection
+	coll.Name = *param.Name
+	coll.Creator = &param.Creator
+	coll.CreateDate = time.Now().Format("2006-01-02 15:04:05")
+	res, err := db.DB.Exec(db.GenInsertSql(coll, "collection"))
+	if err != nil {
+		util.Logger.Println(err)
+		return false, err
+	}
+	util.Logger.Println(res.LastInsertId())
+	return true, err
 }
 
 // Checkout is the resolver for the checkout field.

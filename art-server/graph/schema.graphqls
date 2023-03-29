@@ -270,7 +270,7 @@ type Mutation {
   placeBid(bid: BidParm): Bid
   uploadArt(items:[uploadItem!]): [Item!]!
   setPriceAndMint(param:PriceParam): Boolean!
-  createCollection(param: CollectionParm!): Collection
+  createCollection(param: CollectionParm!): Boolean! 
   checkout(param:PayParam): String
   connectWallet(userId:ID!,type:walletType!):wallet!
   follow(param:FollowParam): String

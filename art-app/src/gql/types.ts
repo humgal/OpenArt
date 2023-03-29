@@ -127,7 +127,7 @@ export type Mutation = {
   __typename?: 'Mutation';
   checkout?: Maybe<Scalars['String']>;
   connectWallet: Wallet;
-  createCollection?: Maybe<Collection>;
+  createCollection: Scalars['Boolean'];
   follow?: Maybe<Scalars['String']>;
   login: Scalars['String'];
   newUser: Scalars['String'];

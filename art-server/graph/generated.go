@@ -183,7 +183,7 @@ type MutationResolver interface {
 	PlaceBid(ctx context.Context, bid *model.BidParm) (*model.Bid, error)
 	UploadArt(ctx context.Context, items []*model.UploadItem) ([]*model.Item, error)
 	SetPriceAndMint(ctx context.Context, param *model.PriceParam) (bool, error)
-	CreateCollection(ctx context.Context, param model.CollectionParm) (*model.Collection, error)
+	CreateCollection(ctx context.Context, param model.CollectionParm) (bool, error)
 	Checkout(ctx context.Context, param *model.PayParam) (*string, error)
 	ConnectWallet(ctx context.Context, userID string, typeArg model.WalletType) (*model.Wallet, error)
 	Follow(ctx context.Context, param *model.FollowParam) (*string, error)
@@ -3624,11 +3624,14 @@ func (ec *executionContext) _Mutation_createCollection(ctx context.Context, fiel
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.Collection)
+	res := resTmp.(bool)
 	fc.Result = res
-	return ec.marshalOCollection2ᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐCollection(ctx, field.Selections, res)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_createCollection(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3638,19 +3641,7 @@ func (ec *executionContext) fieldContext_Mutation_createCollection(ctx context.C
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Collection_id(ctx, field)
-			case "name":
-				return ec.fieldContext_Collection_name(ctx, field)
-			case "items":
-				return ec.fieldContext_Collection_items(ctx, field)
-			case "createDate":
-				return ec.fieldContext_Collection_createDate(ctx, field)
-			case "createor":
-				return ec.fieldContext_Collection_createor(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Collection", field.Name)
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	defer func() {
@@ -8688,6 +8679,9 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 				return ec._Mutation_createCollection(ctx, field)
 			})
 
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "checkout":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
