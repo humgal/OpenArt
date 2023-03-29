@@ -79,8 +79,8 @@ type ComplexityRoot struct {
 	Item struct {
 		CollectionID func(childComplexity int) int
 		CreateDate   func(childComplexity int) int
-		CreateorID   func(childComplexity int) int
 		Creator      func(childComplexity int) int
+		CreatorID    func(childComplexity int) int
 		Description  func(childComplexity int) int
 		ID           func(childComplexity int) int
 		Name         func(childComplexity int) int
@@ -375,19 +375,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Item.CreateDate(childComplexity), true
 
-	case "Item.createorId":
-		if e.complexity.Item.CreateorID == nil {
-			break
-		}
-
-		return e.complexity.Item.CreateorID(childComplexity), true
-
 	case "Item.creator":
 		if e.complexity.Item.Creator == nil {
 			break
 		}
 
 		return e.complexity.Item.Creator(childComplexity), true
+
+	case "Item.creatorId":
+		if e.complexity.Item.CreatorID == nil {
+			break
+		}
+
+		return e.complexity.Item.CreatorID(childComplexity), true
 
 	case "Item.description":
 		if e.complexity.Item.Description == nil {
@@ -1939,8 +1939,8 @@ func (ec *executionContext) fieldContext_Collection_items(ctx context.Context, f
 				return ec.fieldContext_Item_saleStatus(ctx, field)
 			case "price":
 				return ec.fieldContext_Item_price(ctx, field)
-			case "createorId":
-				return ec.fieldContext_Item_createorId(ctx, field)
+			case "creatorId":
+				return ec.fieldContext_Item_creatorId(ctx, field)
 			case "creator":
 				return ec.fieldContext_Item_creator(ctx, field)
 			case "createDate":
@@ -2615,8 +2615,8 @@ func (ec *executionContext) fieldContext_Item_price(ctx context.Context, field g
 	return fc, nil
 }
 
-func (ec *executionContext) _Item_createorId(ctx context.Context, field graphql.CollectedField, obj *model.Item) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Item_createorId(ctx, field)
+func (ec *executionContext) _Item_creatorId(ctx context.Context, field graphql.CollectedField, obj *model.Item) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Item_creatorId(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -2629,7 +2629,7 @@ func (ec *executionContext) _Item_createorId(ctx context.Context, field graphql.
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.CreateorID, nil
+		return obj.CreatorID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2646,7 +2646,7 @@ func (ec *executionContext) _Item_createorId(ctx context.Context, field graphql.
 	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Item_createorId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Item_creatorId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Item",
 		Field:      field,
@@ -3522,8 +3522,8 @@ func (ec *executionContext) fieldContext_Mutation_uploadArt(ctx context.Context,
 				return ec.fieldContext_Item_saleStatus(ctx, field)
 			case "price":
 				return ec.fieldContext_Item_price(ctx, field)
-			case "createorId":
-				return ec.fieldContext_Item_createorId(ctx, field)
+			case "creatorId":
+				return ec.fieldContext_Item_creatorId(ctx, field)
 			case "creator":
 				return ec.fieldContext_Item_creator(ctx, field)
 			case "createDate":
@@ -4304,8 +4304,8 @@ func (ec *executionContext) fieldContext_Query_searchItems(ctx context.Context, 
 				return ec.fieldContext_Item_saleStatus(ctx, field)
 			case "price":
 				return ec.fieldContext_Item_price(ctx, field)
-			case "createorId":
-				return ec.fieldContext_Item_createorId(ctx, field)
+			case "creatorId":
+				return ec.fieldContext_Item_creatorId(ctx, field)
 			case "creator":
 				return ec.fieldContext_Item_creator(ctx, field)
 			case "createDate":
@@ -4468,8 +4468,8 @@ func (ec *executionContext) fieldContext_Query_item(ctx context.Context, field g
 				return ec.fieldContext_Item_saleStatus(ctx, field)
 			case "price":
 				return ec.fieldContext_Item_price(ctx, field)
-			case "createorId":
-				return ec.fieldContext_Item_createorId(ctx, field)
+			case "creatorId":
+				return ec.fieldContext_Item_creatorId(ctx, field)
 			case "creator":
 				return ec.fieldContext_Item_creator(ctx, field)
 			case "createDate":
@@ -4608,8 +4608,8 @@ func (ec *executionContext) fieldContext_Query_items(ctx context.Context, field 
 				return ec.fieldContext_Item_saleStatus(ctx, field)
 			case "price":
 				return ec.fieldContext_Item_price(ctx, field)
-			case "createorId":
-				return ec.fieldContext_Item_createorId(ctx, field)
+			case "creatorId":
+				return ec.fieldContext_Item_creatorId(ctx, field)
 			case "creator":
 				return ec.fieldContext_Item_creator(ctx, field)
 			case "createDate":
@@ -8462,9 +8462,9 @@ func (ec *executionContext) _Item(ctx context.Context, sel ast.SelectionSet, obj
 
 			out.Values[i] = ec._Item_price(ctx, field, obj)
 
-		case "createorId":
+		case "creatorId":
 
-			out.Values[i] = ec._Item_createorId(ctx, field, obj)
+			out.Values[i] = ec._Item_creatorId(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++

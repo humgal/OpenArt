@@ -90,7 +90,7 @@ type Item {
   uploadUrl: String!
   saleStatus: Int!
   price: ItemPrice
-  createorId: ID!
+  creatorId: ID!
   creator: String!
   createDate: Date
   collectionId: Int

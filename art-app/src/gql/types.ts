@@ -76,8 +76,8 @@ export type Item = {
   __typename?: 'Item';
   collectionId?: Maybe<Scalars['Int']>;
   createDate?: Maybe<Scalars['Date']>;
-  createorId: Scalars['ID'];
   creator: Scalars['String'];
+  creatorId: Scalars['ID'];
   description?: Maybe<Scalars['String']>;
   id: Scalars['ID'];
   name: Scalars['String'];

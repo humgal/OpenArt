@@ -64,7 +64,7 @@ type Item struct {
 	UploadURL    string     `json:"uploadUrl"`
 	SaleStatus   int        `json:"saleStatus"`
 	Price        *ItemPrice `json:"price"`
-	CreateorID   string     `json:"createorId"`
+	CreatorID    string     `json:"creatorId"`
 	Creator      string     `json:"creator"`
 	CreateDate   *string    `json:"createDate"`
 	CollectionID *int       `json:"collectionId"`

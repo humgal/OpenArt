@@ -1,6 +1,7 @@
 package service
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"time"
@@ -11,6 +12,7 @@ import (
 	"github.com/humgal/art-server/db"
 	"github.com/humgal/art-server/graph/model"
 	"github.com/humgal/art-server/util"
+	"github.com/humgal/art-server/util/redis"
 	"github.com/shopspring/decimal"
 )
 
@@ -60,7 +62,7 @@ func UploadArt(items []*model.UploadItem) ([]*model.Item, error) {
 	var res_items []*model.Item
 	for rows.Next() {
 		var res_item model.Item
-		err := rows.Scan(&res_item.ID, &res_item.Name, &res_item.Tag, &res_item.Description, &res_item.SaleStatus, &res_item.CreateorID, &res_item.Creator, &res_item.CreateDate, &res_item.CollectionID)
+		err := rows.Scan(&res_item.ID, &res_item.Name, &res_item.Tag, &res_item.Description, &res_item.SaleStatus, &res_item.CreatorID, &res_item.Creator, &res_item.CreateDate, &res_item.CollectionID)
 		if err != nil {
 			util.Logger.Fatal(err)
 		}
@@ -138,17 +140,90 @@ func SearchItems(param model.SearchParm) ([]*model.Item, error) {
 
 // User is the resolver for the user field.
 func User(id string) (*model.User, error) {
-	panic(fmt.Errorf("not implemented: User - user"))
+
+	var user model.User
+	res, err := redis.Rdb.HGet(redis.Rdb.Context(), "openart:user", id).Result()
+	if err != nil {
+		util.Logger.Println(err)
+	}
+	if res != "" {
+		json.Unmarshal([]byte(res), &user)
+		return &user, err
+	}
+	sql := "select id,realname,username,avatar,phone,company,email,bio,img,verify_type,verify_name,is_creator,follower_num,following_num,links from user where id=?"
+
+	row := db.DB.QueryRow(sql, id)
+
+	var linkstr *string
+	var linksjson []*model.Link
+	err = row.Scan(&user.ID, &user.Realname, &user.Username, &user.Avatar, &user.Phone, &user.Company, &user.Email, &user.Bio, &user.Img, &user.VerifyType, &user.VerifyName, &user.IsCreator, &user.FollowerNum, &user.FollowingNum, &linkstr)
+	if err != nil {
+		util.Logger.Println(err)
+		return &user, err
+	}
+	if linkstr != nil {
+		json.Unmarshal([]byte(*linkstr), &linksjson)
+		user.Links = linksjson
+	}
+
+	userbyte, err := json.Marshal(user)
+	if err != nil {
+		util.Logger.Println(err)
+	}
+	redis.Rdb.HSet(redis.Rdb.Context(), "openart:user", id, userbyte)
+	return &user, err
 }
 
 // Item is the resolver for the item field.
 func Item(id string) (*model.Item, error) {
-	panic(fmt.Errorf("not implemented: Item - item"))
+	var item model.Item
+	res, err := redis.Rdb.HGet(redis.Rdb.Context(), "openart:item", id).Result()
+	if err != nil {
+		util.Logger.Println(err)
+	}
+	if res != "" {
+		json.Unmarshal([]byte(res), &item)
+		return &item, err
+	}
+
+	sql := "select id,name,tag,description,upload_url,sale_status,creator_id,creator,create_date,collection_id from item where id=?"
+	row := db.DB.QueryRow(sql, id)
+	err = row.Scan(&item.ID, &item.Name, &item.Tag, &item.Description, &item.UploadURL, &item.SaleStatus, &item.CollectionID, &item.Creator, &item.CreateDate, &item.CollectionID)
+	if err != nil {
+		util.Logger.Println(err)
+		return &item, err
+	}
+	itembyte, err := json.Marshal(item)
+	redis.Rdb.HSet(redis.Rdb.Context(), "openart:item", id, itembyte)
+
+	return &item, err
+
 }
 
 // Collection is the resolver for the collection field.
 func Collection(createor string) (*model.Collection, error) {
-	panic(fmt.Errorf("not implemented: Collection - collection"))
+	var coll model.Collection
+
+	res, err := redis.Rdb.HGet(redis.Rdb.Context(), "openart:collection", createor).Result()
+	if err != nil {
+		util.Logger.Println(err)
+	}
+	if res != "" {
+		json.Unmarshal([]byte(res), &coll)
+		return &coll, err
+	}
+
+	sql := "select  id,name,creator,create_date from collection where creator=?"
+	row := db.DB.QueryRow(sql, createor)
+	err = row.Scan(&coll.ID, &coll.Name, &coll.Createor, &coll.CreateDate)
+	if err != nil {
+		util.Logger.Println(err)
+		return &coll, err
+	}
+	collbyte, err := json.Marshal(coll)
+	redis.Rdb.HSet(redis.Rdb.Context(), "openart:collection", createor, collbyte)
+
+	return &coll, err
 }
 
 // Items is the resolver for the items field.
