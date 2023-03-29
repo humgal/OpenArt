@@ -34,6 +34,14 @@ func UpdateUser(user *model.UpdateUser, username string) (string, error) {
 	if err != nil {
 		return "update user fail", err
 	}
+	var id int
+	row := db.DB.QueryRow("select id from user where username=?", username)
+
+	row.Scan(&id)
+	dao.ID = strconv.Itoa(id)
+	daobyte, _ := json.Marshal(dao)
+	redis.Rdb.HSet(redis.Rdb.Context(), "openart:user", id, daobyte)
+
 	return "update user success", err
 }
 
@@ -66,6 +74,8 @@ func UploadArt(items []*model.UploadItem) ([]*model.Item, error) {
 		if err != nil {
 			util.Logger.Fatal(err)
 		}
+		itembyte, _ := json.Marshal(res_item)
+		redis.Rdb.HSet(redis.Rdb.Context(), "openart:item", res_item.ID, itembyte)
 		res_items = append(res_items, &res_item)
 	}
 
@@ -135,6 +145,7 @@ func Follow(param *model.FollowParam) (*string, error) {
 
 // SearchItems is the resolver for the searchItems field.
 func SearchItems(param model.SearchParm) ([]*model.Item, error) {
+
 	panic(fmt.Errorf("not implemented: SearchItems - searchItems"))
 }
 
