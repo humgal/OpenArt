@@ -185,14 +185,14 @@ type User struct {
 }
 
 type UploadItem struct {
-	Name        string   `json:"name"`
-	Tag         *string  `json:"tag"`
-	Description *string  `json:"description"`
-	UploadURL   []string `json:"uploadUrl"`
-	CreateID    string   `json:"createId"`
-	Creator     string   `json:"creator"`
-	SaleStatus  int      `json:"saleStatus"`
-	Collection  *string  `json:"collection"`
+	Name        string  `json:"name"`
+	Tag         *string `json:"tag"`
+	Description *string `json:"description"`
+	UploadURL   string  `json:"uploadUrl"`
+	CreateID    string  `json:"createId"`
+	Creator     string  `json:"creator"`
+	SaleStatus  int     `json:"saleStatus"`
+	Collection  *string `json:"collection"`
 }
 
 type Wallet struct {

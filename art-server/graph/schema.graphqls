@@ -226,7 +226,7 @@ input uploadItem {
   name: String!
   tag: String
   description: String
-  uploadUrl:  [String!]!
+  uploadUrl:  String!
   createId: ID!
   creator: String!
   saleStatus: Int! 

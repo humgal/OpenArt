@@ -3,7 +3,9 @@ package service
 import (
 	"fmt"
 
+	"github.com/humgal/art-server/dao/item"
 	"github.com/humgal/art-server/dao/users"
+	"github.com/humgal/art-server/db"
 	"github.com/humgal/art-server/graph/model"
 )
 
@@ -30,11 +32,31 @@ func UpdateUser(user *model.UpdateUser, username string) (string, error) {
 
 // UploadArt is the resolver for the uploadArt field.
 func UploadArt(items []*model.UploadItem) ([]*model.Item, error) {
-	panic(fmt.Errorf("not implemented: UploadArt - uploadArt"))
+	sql := ""
+	for i := 0; i < len(items); i++ {
+
+		var item item.Item
+		item.Name = items[i].Name
+		item.Tag = items[i].Tag
+		item.Description = items[i].Description
+		item.UploadUrl = items[i].UploadURL
+		item.CreatorId = items[i].CreateID
+		item.Creator = items[i].Creator
+		item.SalesStatus = items[i].SaleStatus
+
+		sql += db.GenInsertSql(item, "item") + ";"
+	}
+	res, err := db.DB.Exec(sql)
+	if err != nil {
+		return []*model.Item{}, err
+	}
+	println(res.LastInsertId())
+	return nil, nil
 }
 
 // SetPrice is the resolver for the setPrice field.
 func SetPrice(param *model.PriceParam) ([]*model.Item, error) {
+
 	panic(fmt.Errorf("not implemented: SetPrice - setPrice"))
 }
 

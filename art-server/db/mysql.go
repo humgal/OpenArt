@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"unicode"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang-migrate/migrate"
@@ -75,27 +76,27 @@ func GenInsertSql(s interface{}, tablename string) string {
 	t := v.Type()
 
 	for i := 0; i < v.NumField(); i++ {
-		fmt.Printf(t.Field(i).Name)
+		fmt.Printf(CamelCaseToUdnderscore(t.Field(i).Name))
 		fmt.Printf(":")
 		fmt.Printf("%v", v.Field(i).Interface())
 		fmt.Println("")
 		switch v.Field(i).Kind() {
 		case reflect.Int:
-			fileds += t.Field(i).Name + "',"
+			fileds += CamelCaseToUdnderscore(t.Field(i).Name) + ","
 			values += strconv.Itoa(int(v.Field(i).Int())) + ","
 		case reflect.String:
 			if v.Field(i).String() != "" {
-				fileds += t.Field(i).Name + ","
+				fileds += CamelCaseToUdnderscore(t.Field(i).Name) + ","
 				values += "'" + v.Field(i).String() + "',"
 			}
 		case reflect.Struct:
 			if v.Field(i).CanFloat() {
-				fileds += t.Field(i).Name + ","
+				fileds += CamelCaseToUdnderscore(t.Field(i).Name) + ","
 				values += strconv.FormatFloat(v.Field(i).Float(), 'g', 5, 32) + ","
 			}
 		case reflect.Ptr:
 			if !v.Field(i).IsNil() {
-				fileds += t.Field(i).Name + ","
+				fileds += CamelCaseToUdnderscore(t.Field(i).Name) + ","
 				if v.Field(i).Elem().CanFloat() {
 					values += strconv.FormatFloat(v.Field(i).Elem().Float(), 'g', 5, 32) + ","
 				}
@@ -133,34 +134,34 @@ func GenUpdateSql(s interface{}, tablename string) string {
 	t := v.Type()
 
 	for i := 0; i < v.NumField(); i++ {
-		fmt.Printf(t.Field(i).Name)
+		fmt.Printf(CamelCaseToUdnderscore(t.Field(i).Name))
 		fmt.Printf(":")
 		fmt.Printf("%v", v.Field(i).Interface())
 		fmt.Println("")
 		switch v.Field(i).Kind() {
 		case reflect.Int:
 
-			values += t.Field(i).Name + "=" + strconv.Itoa(int(v.Field(i).Int())) + ","
+			values += CamelCaseToUdnderscore(t.Field(i).Name) + "=" + strconv.Itoa(int(v.Field(i).Int())) + ","
 		case reflect.String:
 			if v.Field(i).String() != "" {
-				values += t.Field(i).Name + "='" + v.Field(i).String() + "',"
+				values += CamelCaseToUdnderscore(t.Field(i).Name) + "='" + v.Field(i).String() + "',"
 			}
 		case reflect.Struct:
 			if v.Field(i).CanFloat() {
 
-				values += t.Field(i).Name + "=" + strconv.FormatFloat(v.Field(i).Float(), 'g', 5, 32) + ","
+				values += CamelCaseToUdnderscore(t.Field(i).Name) + "=" + strconv.FormatFloat(v.Field(i).Float(), 'g', 5, 32) + ","
 			}
 		case reflect.Ptr:
 			if !v.Field(i).IsNil() {
 
 				if v.Field(i).Elem().CanFloat() {
-					values += t.Field(i).Name + "=" + strconv.FormatFloat(v.Field(i).Elem().Float(), 'g', 5, 32) + ","
+					values += CamelCaseToUdnderscore(t.Field(i).Name) + "=" + strconv.FormatFloat(v.Field(i).Elem().Float(), 'g', 5, 32) + ","
 				}
 				if v.Field(i).Elem().CanInt() {
-					values += t.Field(i).Name + "=" + strconv.Itoa(int(v.Field(i).Elem().Int())) + ","
+					values += CamelCaseToUdnderscore(t.Field(i).Name) + "=" + strconv.Itoa(int(v.Field(i).Elem().Int())) + ","
 				}
 
-				values += t.Field(i).Name + "='" + v.Field(i).Elem().String() + "',"
+				values += CamelCaseToUdnderscore(t.Field(i).Name) + "='" + v.Field(i).Elem().String() + "',"
 			}
 
 		}
@@ -170,4 +171,19 @@ func GenUpdateSql(s interface{}, tablename string) string {
 
 	return sqlstr[0 : len(sqlstr)-1]
 
+}
+func CamelCaseToUdnderscore(s string) string {
+	var output []rune
+	for i, r := range s {
+		if i == 0 {
+			output = append(output, unicode.ToLower(r))
+		} else {
+			if unicode.IsUpper(r) {
+				output = append(output, '_')
+			}
+
+			output = append(output, unicode.ToLower(r))
+		}
+	}
+	return string(output)
 }

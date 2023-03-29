@@ -3,18 +3,18 @@ package item
 import "github.com/shopspring/decimal"
 
 type Item struct {
-	ID           int        `json:"id"`
+	Id           int        `json:"id"`
 	Name         string     `json:"name"`
 	Tag          *string    `json:"tag"`
 	Description  *string    `json:"description"`
-	UploadURL    string     `json:"uploadUrl"`
-	SaleStatus   int        `json:"saleStatus"`
+	UploadUrl    string     `json:"uploadUrl"`
+	SalesStatus  int        `json:"saleStatus"`
 	Price        *ItemPrice `json:"price"`
-	CreateorID   string     `json:"createorId"`
+	CreatorId    string     `json:"createorId"`
 	Creator      string     `json:"creator"`
 	CreateDate   *string    `json:"createDate"`
-	CollectionID *int       `json:"collectionId"`
-	OwnerID      *int       `json:"ownerID"`
+	CollectionId *int       `json:"collectionId"`
+	OwnerId      *int       `json:"ownerId"`
 	Owner        *string    `json:"owner"`
 	Status       *int       `json:"status"`
 }
