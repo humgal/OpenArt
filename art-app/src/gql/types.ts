@@ -245,7 +245,7 @@ export type PriceRange = {
 
 export type Query = {
   __typename?: 'Query';
-  collection?: Maybe<Collection>;
+  collection?: Maybe<Array<Maybe<Collection>>>;
   item?: Maybe<Item>;
   items?: Maybe<Array<Maybe<Item>>>;
   searchItems?: Maybe<Array<Maybe<Item>>>;

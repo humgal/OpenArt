@@ -257,8 +257,8 @@ type Query {
   searchItems(param:SearchParm!): [Item]
   user(id:ID!): User
   item(id:ID!): Item
-  collection(createor:String!):Collection
-  items(createor:String,ids:[ID!]):[Item]
+  collection(creator:String!):[Collection]
+  items(createor:String!):[Item]
 }
 
 

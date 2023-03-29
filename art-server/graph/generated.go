@@ -133,9 +133,9 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Collection  func(childComplexity int, createor string) int
+		Collection  func(childComplexity int, creator string) int
 		Item        func(childComplexity int, id string) int
-		Items       func(childComplexity int, createor *string, ids []string) int
+		Items       func(childComplexity int, createor string) int
 		SearchItems func(childComplexity int, param model.SearchParm) int
 		User        func(childComplexity int, id string) int
 	}
@@ -192,8 +192,8 @@ type QueryResolver interface {
 	SearchItems(ctx context.Context, param model.SearchParm) ([]*model.Item, error)
 	User(ctx context.Context, id string) (*model.User, error)
 	Item(ctx context.Context, id string) (*model.Item, error)
-	Collection(ctx context.Context, createor string) (*model.Collection, error)
-	Items(ctx context.Context, createor *string, ids []string) ([]*model.Item, error)
+	Collection(ctx context.Context, creator string) ([]*model.Collection, error)
+	Items(ctx context.Context, createor string) ([]*model.Item, error)
 }
 type SubscriptionResolver interface {
 	SubscriptionPayment(ctx context.Context, itemid *string) (<-chan *model.SubscriptionEvent, error)
@@ -713,7 +713,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Collection(childComplexity, args["createor"].(string)), true
+		return e.complexity.Query.Collection(childComplexity, args["creator"].(string)), true
 
 	case "Query.item":
 		if e.complexity.Query.Item == nil {
@@ -737,7 +737,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Items(childComplexity, args["createor"].(*string), args["ids"].([]string)), true
+		return e.complexity.Query.Items(childComplexity, args["createor"].(string)), true
 
 	case "Query.searchItems":
 		if e.complexity.Query.SearchItems == nil {
@@ -1231,14 +1231,14 @@ func (ec *executionContext) field_Query_collection_args(ctx context.Context, raw
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["createor"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createor"))
+	if tmp, ok := rawArgs["creator"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("creator"))
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["createor"] = arg0
+	args["creator"] = arg0
 	return args, nil
 }
 
@@ -1260,24 +1260,15 @@ func (ec *executionContext) field_Query_item_args(ctx context.Context, rawArgs m
 func (ec *executionContext) field_Query_items_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *string
+	var arg0 string
 	if tmp, ok := rawArgs["createor"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createor"))
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
 	args["createor"] = arg0
-	var arg1 []string
-	if tmp, ok := rawArgs["ids"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ids"))
-		arg1, err = ec.unmarshalOID2ᚕstringᚄ(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["ids"] = arg1
 	return args, nil
 }
 
@@ -4508,7 +4499,7 @@ func (ec *executionContext) _Query_collection(ctx context.Context, field graphql
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Collection(rctx, fc.Args["createor"].(string))
+		return ec.resolvers.Query().Collection(rctx, fc.Args["creator"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4517,9 +4508,9 @@ func (ec *executionContext) _Query_collection(ctx context.Context, field graphql
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*model.Collection)
+	res := resTmp.([]*model.Collection)
 	fc.Result = res
-	return ec.marshalOCollection2ᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐCollection(ctx, field.Selections, res)
+	return ec.marshalOCollection2ᚕᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐCollection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_collection(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4572,7 +4563,7 @@ func (ec *executionContext) _Query_items(ctx context.Context, field graphql.Coll
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Items(rctx, fc.Args["createor"].(*string), fc.Args["ids"].([]string))
+		return ec.resolvers.Query().Items(rctx, fc.Args["createor"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -10012,6 +10003,47 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return res
 }
 
+func (ec *executionContext) marshalOCollection2ᚕᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐCollection(ctx context.Context, sel ast.SelectionSet, v []*model.Collection) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOCollection2ᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐCollection(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
 func (ec *executionContext) marshalOCollection2ᚖgithubᚗcomᚋhumgalᚋartᚑserverᚋgraphᚋmodelᚐCollection(ctx context.Context, sel ast.SelectionSet, v *model.Collection) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -10041,44 +10073,6 @@ func (ec *executionContext) unmarshalOFollowParam2ᚖgithubᚗcomᚋhumgalᚋart
 	}
 	res, err := ec.unmarshalInputFollowParam(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalOID2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var vSlice []interface{}
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
-	var err error
-	res := make([]string, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNID2string(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
-func (ec *executionContext) marshalOID2ᚕstringᚄ(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	for i := range v {
-		ret[i] = ec.marshalNID2string(ctx, sel, v[i])
-	}
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
 }
 
 func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v interface{}) (*int, error) {

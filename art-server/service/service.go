@@ -201,34 +201,73 @@ func Item(id string) (*model.Item, error) {
 }
 
 // Collection is the resolver for the collection field.
-func Collection(createor string) (*model.Collection, error) {
-	var coll model.Collection
+func Collection(creator string) ([]*model.Collection, error) {
+	var colls []*model.Collection
 
-	res, err := redis.Rdb.HGet(redis.Rdb.Context(), "openart:collection", createor).Result()
+	res, err := redis.Rdb.Get(redis.Rdb.Context(), "openart:collection:"+creator).Result()
 	if err != nil {
 		util.Logger.Println(err)
 	}
 	if res != "" {
-		json.Unmarshal([]byte(res), &coll)
-		return &coll, err
+		json.Unmarshal([]byte(res), &colls)
+		return colls, err
 	}
 
 	sql := "select  id,name,creator,create_date from collection where creator=?"
-	row := db.DB.QueryRow(sql, createor)
-	err = row.Scan(&coll.ID, &coll.Name, &coll.Createor, &coll.CreateDate)
+	row, err := db.DB.Query(sql, creator)
 	if err != nil {
 		util.Logger.Println(err)
-		return &coll, err
 	}
-	collbyte, err := json.Marshal(coll)
-	redis.Rdb.HSet(redis.Rdb.Context(), "openart:collection", createor, collbyte)
+	for row.Next() {
+		var coll model.Collection
+		err = row.Scan(&coll.ID, &coll.Name, &coll.Createor, &coll.CreateDate)
+		colls = append(colls, &coll)
+		if err != nil {
+			util.Logger.Println(err)
+			return colls, err
+		}
+	}
+	if len(colls) > 0 {
+		collbyte, _ := json.Marshal(colls)
+		redis.Rdb.Set(redis.Rdb.Context(), "openart:collection:"+creator, collbyte, time.Hour*24*30*3)
+	}
 
-	return &coll, err
+	return colls, err
 }
 
 // Items is the resolver for the items field.
-func Items(createor *string, ids []string) ([]*model.Item, error) {
-	panic(fmt.Errorf("not implemented: Items - items"))
+func Items(creator string) ([]*model.Item, error) {
+
+	var items []*model.Item
+
+	res, err := redis.Rdb.Get(redis.Rdb.Context(), "openart:items:"+creator).Result()
+	if err != nil {
+		util.Logger.Println(err)
+	}
+	if res != "" {
+		json.Unmarshal([]byte(res), &items)
+		return items, err
+	}
+
+	sql := "select  id,name,tag,description, upload_url,sale_status,creator_id,creator,create_date,collection_id from item where creator=?"
+	row, err := db.DB.Query(sql, creator)
+	if err != nil {
+		util.Logger.Println(err)
+	}
+	for row.Next() {
+		var item model.Item
+		err = row.Scan(&item.ID, &item.Name, &item.Tag, &item.Description, &item.UploadURL, &item.SaleStatus, &item.CreatorID, &item.Creator, &item.CreateDate, &item.CollectionID)
+		items = append(items, &item)
+		if err != nil {
+			util.Logger.Println(err)
+			return items, err
+		}
+	}
+	if len(items) > 0 {
+		collbyte, _ := json.Marshal(items)
+		redis.Rdb.Set(redis.Rdb.Context(), "openart:items:"+creator, collbyte, time.Hour*24*30)
+	}
+	return items, err
 }
 
 // SubscriptionPayment is the resolver for the subscriptionPayment field.

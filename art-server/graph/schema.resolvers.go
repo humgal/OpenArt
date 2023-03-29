@@ -206,22 +206,22 @@ func (r *queryResolver) Item(ctx context.Context, id string) (*model.Item, error
 }
 
 // Collection is the resolver for the collection field.
-func (r *queryResolver) Collection(ctx context.Context, createor string) (*model.Collection, error) {
+func (r *queryResolver) Collection(ctx context.Context, creator string) ([]*model.Collection, error) {
 	user := auth.ForContext(ctx)
 	if user == nil {
 		return nil, fmt.Errorf("access denied")
 	} else {
-		return service.Collection(createor)
+		return service.Collection(creator)
 	}
 }
 
 // Items is the resolver for the items field.
-func (r *queryResolver) Items(ctx context.Context, createor *string, ids []string) ([]*model.Item, error) {
+func (r *queryResolver) Items(ctx context.Context, createor string) ([]*model.Item, error) {
 	user := auth.ForContext(ctx)
 	if user == nil {
 		return nil, fmt.Errorf("access denied")
 	} else {
-		return service.Items(createor, ids)
+		return service.Items(createor)
 	}
 }
 
