@@ -53,7 +53,7 @@ func (r *mutationResolver) Login(ctx context.Context, input model.Login) (string
 	loginstat := auth.IpContext(ctx)
 	redisloginstat := users.LoginStatus{}
 	var loginstatbyte []byte
-	redis.Rdb.HGet(redis.Rdb.Context(), "openart:user:login", input.Username).Scan(&loginstatbyte)
+	redis.Rdb.HGet(context.Background(), "openart:user:login", input.Username).Scan(&loginstatbyte)
 	json.Unmarshal(loginstatbyte, &redisloginstat)
 
 	const longForm = "2006-01-02 15:04:05"
@@ -86,7 +86,7 @@ func (r *mutationResolver) Login(ctx context.Context, input model.Login) (string
 	}
 	statbyte, _ := json.Marshal(loginstat)
 
-	redis.Rdb.HSet(redis.Rdb.Context(), "openart:user:login", input.Username, statbyte).Result()
+	redis.Rdb.HSet(context.Background(), "openart:user:login", input.Username, statbyte).Result()
 	return token, nil
 }
 
@@ -98,7 +98,7 @@ func (r *mutationResolver) RefreshToken(ctx context.Context, input model.Refresh
 	}
 
 	token, err := jwt.GenerateToken(username)
-	redis.Rdb.Del(redis.Rdb.Context(), input.Token)
+	redis.Rdb.Del(context.Background(), input.Token)
 	if err != nil {
 		return "", err
 	}

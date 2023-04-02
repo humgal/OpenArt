@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strconv"
@@ -40,7 +41,7 @@ func UpdateUser(user *model.UpdateUser, username string) (string, error) {
 
 	row.Scan(&id)
 	dao.ID = strconv.Itoa(id)
-	redis.Rdb.HSet(redis.Rdb.Context(), "openart:user"+dao.ID, "id", dao.ID, "username", dao.Username, "realname", dao.Realname, "avatar", dao.Avatar, "phone", dao.Phone, "company", dao.Company, "email", dao.Email, "bio", dao.Bio, "img", dao.Img, "verifyType", dao.VerifyType, "verifyName", dao.VerifyName, "isCreator", dao.IsCreator, "followerNum", dao.FollowerNum, "followingNum", dao.FollowingNum, "links", dao.Links)
+	redis.Rdb.HSet(context.Background(), "openart:user"+dao.ID, "id", dao.ID, "username", dao.Username, "realname", dao.Realname, "avatar", dao.Avatar, "phone", dao.Phone, "company", dao.Company, "email", dao.Email, "bio", dao.Bio, "img", dao.Img, "verifyType", dao.VerifyType, "verifyName", dao.VerifyName, "isCreator", dao.IsCreator, "followerNum", dao.FollowerNum, "followingNum", dao.FollowingNum, "links", dao.Links)
 
 	return "update user success", err
 }
@@ -74,7 +75,7 @@ func UploadArt(items []*model.UploadItem) ([]*model.Item, error) {
 		if err != nil {
 			util.Logger.Fatal(err)
 		}
-		redis.Rdb.HSet(redis.Rdb.Context(), "openart:item:"+item.ID, "id", item.ID, "name", item.Name, "tag", item.Tag, "description", item.Description, "uploadUrl", item.UploadURL, "saleStatus", item.SaleStatus, "creatorId", item.CreatorID, "creator", item.Creator, "createDate", item.CreateDate, "collectionId", item.CollectionID)
+		redis.Rdb.HSet(context.Background(), "openart:item:"+item.ID, "id", item.ID, "name", item.Name, "tag", item.Tag, "description", item.Description, "uploadUrl", item.UploadURL, "saleStatus", item.SaleStatus, "creatorId", item.CreatorID, "creator", item.Creator, "createDate", item.CreateDate, "collectionId", item.CollectionID)
 
 		res_items = append(res_items, &item)
 	}
@@ -167,7 +168,7 @@ func SearchItems(param model.SearchParm) ([]*model.Item, error) {
 func User(id string) (*model.User, error) {
 
 	var dao model.User
-	res, err := redis.Rdb.HGetAll(redis.Rdb.Context(), "openart:user"+id).Result()
+	res, err := redis.Rdb.HGetAll(context.Background(), "openart:user"+id).Result()
 	if err != nil {
 		util.Logger.Println(err)
 	}
@@ -208,14 +209,14 @@ func User(id string) (*model.User, error) {
 		dao.Links = linksjson
 	}
 
-	redis.Rdb.HSet(redis.Rdb.Context(), "openart:user"+dao.ID, "id", dao.ID, "username", dao.Username, "realname", dao.Realname, "avatar", dao.Avatar, "phone", dao.Phone, "company", dao.Company, "email", dao.Email, "bio", dao.Bio, "img", dao.Img, "verifyType", dao.VerifyType, "verifyName", dao.VerifyName, "isCreator", dao.IsCreator, "followerNum", dao.FollowerNum, "followingNum", dao.FollowingNum, "links", dao.Links)
+	redis.Rdb.HSet(context.Background(), "openart:user"+dao.ID, "id", dao.ID, "username", dao.Username, "realname", dao.Realname, "avatar", dao.Avatar, "phone", dao.Phone, "company", dao.Company, "email", dao.Email, "bio", dao.Bio, "img", dao.Img, "verifyType", dao.VerifyType, "verifyName", dao.VerifyName, "isCreator", dao.IsCreator, "followerNum", dao.FollowerNum, "followingNum", dao.FollowingNum, "links", dao.Links)
 	return &dao, err
 }
 
 // Item is the resolver for the item field.
 func Item(id string) (*model.Item, error) {
 	var item model.Item
-	res, err := redis.Rdb.HGetAll(redis.Rdb.Context(), "openart:item"+id).Result()
+	res, err := redis.Rdb.HGetAll(context.Background(), "openart:item"+id).Result()
 	if err != nil {
 		util.Logger.Println(err)
 	}
@@ -241,7 +242,7 @@ func Item(id string) (*model.Item, error) {
 		util.Logger.Println(err)
 		return &item, err
 	}
-	redis.Rdb.HSet(redis.Rdb.Context(), "openart:item:"+item.ID, "id", item.ID, "name", item.Name, "tag", item.Tag, "description", item.Description, "uploadUrl", item.UploadURL, "saleStatus", item.SaleStatus, "creatorId", item.CreatorID, "creator", item.Creator, "createDate", item.CreateDate, "collectionId", item.CollectionID)
+	redis.Rdb.HSet(context.Background(), "openart:item:"+item.ID, "id", item.ID, "name", item.Name, "tag", item.Tag, "description", item.Description, "uploadUrl", item.UploadURL, "saleStatus", item.SaleStatus, "creatorId", item.CreatorID, "creator", item.Creator, "createDate", item.CreateDate, "collectionId", item.CollectionID)
 	return &item, err
 
 }
@@ -250,7 +251,7 @@ func Item(id string) (*model.Item, error) {
 func Collection(creator string) ([]*model.Collection, error) {
 	var colls []*model.Collection
 
-	res, err := redis.Rdb.Get(redis.Rdb.Context(), "openart:collection:"+creator).Result()
+	res, err := redis.Rdb.Get(context.Background(), "openart:collection:"+creator).Result()
 	if err != nil {
 		util.Logger.Println(err)
 	}
@@ -275,7 +276,7 @@ func Collection(creator string) ([]*model.Collection, error) {
 	}
 	if len(colls) > 0 {
 		collbyte, _ := json.Marshal(colls)
-		redis.Rdb.Set(redis.Rdb.Context(), "openart:collection:"+creator, collbyte, time.Hour*24*30*3)
+		redis.Rdb.Set(context.Background(), "openart:collection:"+creator, collbyte, time.Hour*24*30*3)
 	}
 
 	return colls, err
@@ -286,7 +287,7 @@ func Items(creator string) ([]*model.Item, error) {
 
 	var items []*model.Item
 
-	res, err := redis.Rdb.Get(redis.Rdb.Context(), "openart:items:"+creator).Result()
+	res, err := redis.Rdb.Get(context.Background(), "openart:items:"+creator).Result()
 	if err != nil {
 		util.Logger.Println(err)
 	}
@@ -311,7 +312,7 @@ func Items(creator string) ([]*model.Item, error) {
 	}
 	if len(items) > 0 {
 		collbyte, _ := json.Marshal(items)
-		redis.Rdb.Set(redis.Rdb.Context(), "openart:items:"+creator, collbyte, time.Hour*24*30)
+		redis.Rdb.Set(context.Background(), "openart:items:"+creator, collbyte, time.Hour*24*30)
 	}
 	return items, err
 }
