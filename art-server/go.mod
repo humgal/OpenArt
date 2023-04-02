@@ -9,6 +9,7 @@ require (
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/golang-migrate/migrate v3.5.4+incompatible
 	github.com/redis/go-redis/v9 v9.0.2
+	github.com/rueian/rueidis v0.0.97
 	github.com/shopspring/decimal v1.3.1
 	github.com/vektah/gqlparser/v2 v2.5.1
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
@@ -30,6 +31,5 @@ require (
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.0.2 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	golang.org/x/net v0.8.0 // indirect
 	gopkg.in/yaml.v2 v2.3.0 // indirect
 )

@@ -1,6 +1,7 @@
 package jwt
 
 import (
+	"context"
 	"errors"
 	"log"
 	"math/rand"
@@ -46,14 +47,14 @@ func GenerateToken(username string) (string, error) {
 		log.Fatal("Error in Generating key")
 		return "", err
 	}
-	redis.Rdb.Set(redis.Rdb.Context(), tokenString, SecretKey, time.Hour*24)
+	redis.Rdb.Set(context.Background(), tokenString, SecretKey, time.Hour*24)
 	return tokenString, nil
 }
 
 // ParseToken parses a jwt token and returns the username it it's claims
 func ParseToken(tokenStr string) (string, error) {
 
-	SecretKey := redis.Rdb.Get(redis.Rdb.Context(), tokenStr).Val()
+	SecretKey := redis.Rdb.Get(context.Background(), tokenStr).Val()
 	if SecretKey == "" {
 		return "", errors.New("token过期")
 	}
