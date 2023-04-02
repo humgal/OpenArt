@@ -40,8 +40,7 @@ func UpdateUser(user *model.UpdateUser, username string) (string, error) {
 
 	row.Scan(&id)
 	dao.ID = strconv.Itoa(id)
-	daobyte, _ := json.Marshal(dao)
-	redis.Rdb.HSet(redis.Rdb.Context(), "openart:user", id, daobyte)
+	redis.Rdb.HSet(redis.Rdb.Context(), "openart:user"+dao.ID, "id", dao.ID, "username", dao.Username, "realname", dao.Realname, "avatar", dao.Avatar, "phone", dao.Phone, "company", dao.Company, "email", dao.Email, "bio", dao.Bio, "img", dao.Img, "verifyType", dao.VerifyType, "verifyName", dao.VerifyName, "isCreator", dao.IsCreator, "followerNum", dao.FollowerNum, "followingNum", dao.FollowingNum, "links", dao.Links)
 
 	return "update user success", err
 }
@@ -70,14 +69,14 @@ func UploadArt(items []*model.UploadItem) ([]*model.Item, error) {
 	rows, err := db.DB.Query("select id,name,tag,description,sale_status,creator_id,creator,create_date,collection_id from item where id=?", insid)
 	var res_items []*model.Item
 	for rows.Next() {
-		var res_item model.Item
-		err := rows.Scan(&res_item.ID, &res_item.Name, &res_item.Tag, &res_item.Description, &res_item.SaleStatus, &res_item.CreatorID, &res_item.Creator, &res_item.CreateDate, &res_item.CollectionID)
+		var item model.Item
+		err := rows.Scan(&item.ID, &item.Name, &item.Tag, &item.Description, &item.SaleStatus, &item.CreatorID, &item.Creator, &item.CreateDate, &item.CollectionID)
 		if err != nil {
 			util.Logger.Fatal(err)
 		}
-		itembyte, _ := json.Marshal(res_item)
-		redis.Rdb.HSet(redis.Rdb.Context(), "openart:item", res_item.ID, itembyte)
-		res_items = append(res_items, &res_item)
+		redis.Rdb.HSet(redis.Rdb.Context(), "openart:item:"+item.ID, "id", item.ID, "name", item.Name, "tag", item.Tag, "description", item.Description, "uploadUrl", item.UploadURL, "saleStatus", item.SaleStatus, "creatorId", item.CreatorID, "creator", item.Creator, "createDate", item.CreateDate, "collectionId", item.CollectionID)
+
+		res_items = append(res_items, &item)
 	}
 
 	return res_items, err
@@ -167,14 +166,31 @@ func SearchItems(param model.SearchParm) ([]*model.Item, error) {
 // User is the resolver for the user field.
 func User(id string) (*model.User, error) {
 
-	var user model.User
-	res, err := redis.Rdb.HGet(redis.Rdb.Context(), "openart:user", id).Result()
+	var dao model.User
+	res, err := redis.Rdb.HGetAll(redis.Rdb.Context(), "openart:user"+id).Result()
 	if err != nil {
 		util.Logger.Println(err)
 	}
-	if res != "" {
-		json.Unmarshal([]byte(res), &user)
-		return &user, err
+	if res["id"] != "" {
+		dao.ID = res["id"]
+		dao.Username = res["username"]
+		dao.Realname = res["realname"]
+		*dao.Avatar = res["avatar"]
+		*dao.Phone = res["phone"]
+		*dao.Company = res["company"]
+		*dao.Email = res["email"]
+		*dao.Bio = res["bio"]
+		*dao.Img = res["img"]
+		// dao.VerifyType = res["verifyType"]
+		*dao.VerifyName = res["verifyName"]
+		// *dao.IsCreator = res["isCreator"]
+		a, _ := strconv.Atoi(res["followerNum"])
+		dao.FollowerNum = &a
+		b, _ := strconv.Atoi(res["followingNum"])
+		dao.FollowingNum = &b
+		// dao.Links = res["links"]
+
+		return &dao, err
 	}
 	sql := "select id,realname,username,avatar,phone,company,email,bio,img,verify_type,verify_name,is_creator,follower_num,following_num,links from user where id=?"
 
@@ -182,33 +198,39 @@ func User(id string) (*model.User, error) {
 
 	var linkstr *string
 	var linksjson []*model.Link
-	err = row.Scan(&user.ID, &user.Realname, &user.Username, &user.Avatar, &user.Phone, &user.Company, &user.Email, &user.Bio, &user.Img, &user.VerifyType, &user.VerifyName, &user.IsCreator, &user.FollowerNum, &user.FollowingNum, &linkstr)
+	err = row.Scan(&dao.ID, &dao.Realname, &dao.Username, &dao.Avatar, &dao.Phone, &dao.Company, &dao.Email, &dao.Bio, &dao.Img, &dao.VerifyType, &dao.VerifyName, &dao.IsCreator, &dao.FollowerNum, &dao.FollowingNum, &linkstr)
 	if err != nil {
 		util.Logger.Println(err)
-		return &user, err
+		return &dao, err
 	}
 	if linkstr != nil {
 		json.Unmarshal([]byte(*linkstr), &linksjson)
-		user.Links = linksjson
+		dao.Links = linksjson
 	}
 
-	userbyte, err := json.Marshal(user)
-	if err != nil {
-		util.Logger.Println(err)
-	}
-	redis.Rdb.HSet(redis.Rdb.Context(), "openart:user", id, userbyte)
-	return &user, err
+	redis.Rdb.HSet(redis.Rdb.Context(), "openart:user"+dao.ID, "id", dao.ID, "username", dao.Username, "realname", dao.Realname, "avatar", dao.Avatar, "phone", dao.Phone, "company", dao.Company, "email", dao.Email, "bio", dao.Bio, "img", dao.Img, "verifyType", dao.VerifyType, "verifyName", dao.VerifyName, "isCreator", dao.IsCreator, "followerNum", dao.FollowerNum, "followingNum", dao.FollowingNum, "links", dao.Links)
+	return &dao, err
 }
 
 // Item is the resolver for the item field.
 func Item(id string) (*model.Item, error) {
 	var item model.Item
-	res, err := redis.Rdb.HGet(redis.Rdb.Context(), "openart:item", id).Result()
+	res, err := redis.Rdb.HGetAll(redis.Rdb.Context(), "openart:item"+id).Result()
 	if err != nil {
 		util.Logger.Println(err)
 	}
-	if res != "" {
-		json.Unmarshal([]byte(res), &item)
+	if res["ID"] != "" {
+		item.ID = res["id"]
+		item.Name = res["name"]
+		*item.Tag = res["tag"]
+		*item.Description = res["description"]
+		item.UploadURL = res["uploadUrl"]
+		a, _ := strconv.Atoi(res["saleStatus"])
+		item.SaleStatus = a
+		item.CreatorID = res["creatorId"]
+		item.Creator = res["creator"]
+		b, err := strconv.Atoi(res["collectionId"])
+		item.CollectionID = &b
 		return &item, err
 	}
 
@@ -219,9 +241,7 @@ func Item(id string) (*model.Item, error) {
 		util.Logger.Println(err)
 		return &item, err
 	}
-	itembyte, err := json.Marshal(item)
-	redis.Rdb.HSet(redis.Rdb.Context(), "openart:item", id, itembyte)
-
+	redis.Rdb.HSet(redis.Rdb.Context(), "openart:item:"+item.ID, "id", item.ID, "name", item.Name, "tag", item.Tag, "description", item.Description, "uploadUrl", item.UploadURL, "saleStatus", item.SaleStatus, "creatorId", item.CreatorID, "creator", item.Creator, "createDate", item.CreateDate, "collectionId", item.CollectionID)
 	return &item, err
 
 }
