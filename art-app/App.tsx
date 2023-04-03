@@ -6,7 +6,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Home from "./src/components/Home/Home";
-import Creator from "./src/components/DiscoverCreator/Creator";
+import Creator from "./src/components/DiscoverCreator/DiscoverCreator";
 import UploadArtWork from "./src/components/UploadArtWork/UploadArtWork";
 import Profile from "./src/components/MyProfile/Profile";
 import { navigationRef } from './src/components/common/RootNavigation';

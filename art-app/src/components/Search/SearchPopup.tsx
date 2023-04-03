@@ -2,8 +2,7 @@ import { View, Text } from "react-native";
 const Search = () => {
   return (
     <View>
-      
-      <Text>search</Text>
+      <Text>search popup</Text>
     </View>
   );
 };
