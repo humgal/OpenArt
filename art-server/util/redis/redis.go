@@ -2,7 +2,6 @@ package redis
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/humgal/art-server/util"
 	redis "github.com/redis/go-redis/v9"
@@ -11,8 +10,7 @@ import (
 
 var ctx context.Context
 var Rdb *redis.Client
-
-var RueidisClient *rueidis.Client
+var Client rueidis.Client
 
 func init() {
 	ctx = context.Background()
@@ -27,20 +25,15 @@ func init() {
 		panic(cmd.Err())
 	}
 
-	println(cmd.Result())
+	println(cmd.String())
 
-	//add for redis-search
-	RueidisClient, err := rueidis.NewClient(rueidis.ClientOption{
+	Client, _ = rueidis.NewClient(rueidis.ClientOption{
 		InitAddress: []string{"127.0.0.1:6379"},
 	})
-	if err != nil {
-		panic(err)
-	}
 	// SET key val NX
-	RueidisClient.B().Ping().Build()
-	pong, err := RueidisClient.Do(context.Background(), RueidisClient.B().Ping().Build()).ToString()
+	pong, err := Client.Do(context.Background(), Client.B().Ping().Build()).ToString()
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(pong)
+	println(pong)
 }
