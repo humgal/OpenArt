@@ -253,8 +253,14 @@ input RefreshTokenInput{
     token: String!
 }
 
+type SearchResult {
+  people: [User]!
+  items: [Item]!
+}
+
 type Query {
   searchItems(param:SearchParm!): [Item]
+  search(param:String): SearchResult 
   user(id:ID!): User
   item(id:ID!): Item
   collection(creator:String!):[Collection]

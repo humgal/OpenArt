@@ -145,6 +145,11 @@ type SearchParm struct {
 	Creator *string     `json:"creator"`
 }
 
+type SearchResult struct {
+	People []*User `json:"people"`
+	Items  []*Item `json:"items"`
+}
+
 type SubscriptionEvent struct {
 	Payments []*Payment `json:"payments"`
 	Bids     []*Bid     `json:"bids"`

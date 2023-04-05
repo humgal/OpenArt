@@ -160,8 +160,11 @@ func Follow(param *model.FollowParam) (*string, error) {
 
 // SearchItems is the resolver for the searchItems field.
 func SearchItems(param model.SearchParm) ([]*model.Item, error) {
+	var items []*model.Item
+	//add for redis-search
+	redis.Client.Do(context.Background(), redis.Client.B().FtSearch().Index("itemIndex").Query("helloworld").Limit().OffsetNum(0, 10).Build())
 
-	panic(fmt.Errorf("not implemented: SearchItems - searchItems"))
+	return items, nil
 }
 
 // User is the resolver for the user field.

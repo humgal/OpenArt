@@ -185,6 +185,11 @@ func (r *queryResolver) SearchItems(ctx context.Context, param model.SearchParm)
 	}
 }
 
+// Search is the resolver for the search field.
+func (r *queryResolver) Search(ctx context.Context, param *string) (*model.SearchResult, error) {
+	panic(fmt.Errorf("not implemented: Search - search"))
+}
+
 // User is the resolver for the user field.
 func (r *queryResolver) User(ctx context.Context, id string) (*model.User, error) {
 	user := auth.ForContext(ctx)

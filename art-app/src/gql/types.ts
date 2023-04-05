@@ -248,6 +248,7 @@ export type Query = {
   collection?: Maybe<Array<Maybe<Collection>>>;
   item?: Maybe<Item>;
   items?: Maybe<Array<Maybe<Item>>>;
+  search?: Maybe<SearchResult>;
   searchItems?: Maybe<Array<Maybe<Item>>>;
   user?: Maybe<User>;
 };
@@ -265,6 +266,11 @@ export type QueryItemArgs = {
 
 export type QueryItemsArgs = {
   createor: Scalars['String'];
+};
+
+
+export type QuerySearchArgs = {
+  param?: InputMaybe<Scalars['String']>;
 };
 
 
@@ -288,6 +294,12 @@ export type SearchParm = {
   param: Scalars['String'];
   price?: InputMaybe<PriceRange>;
   type?: InputMaybe<SearchType>;
+};
+
+export type SearchResult = {
+  __typename?: 'SearchResult';
+  items: Array<Maybe<Item>>;
+  people: Array<Maybe<User>>;
 };
 
 export enum SearchType {
