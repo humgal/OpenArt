@@ -18,7 +18,7 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-func UpdateUser(user *model.UpdateUser, username string) (string, error) {
+func UpdateUser(ctx context.Context, user *model.UpdateUser, username string) (string, error) {
 	var dao users.User
 	dao.Username = username
 
@@ -41,13 +41,13 @@ func UpdateUser(user *model.UpdateUser, username string) (string, error) {
 
 	row.Scan(&id)
 	dao.ID = strconv.Itoa(id)
-	redis.Rdb.HSet(context.Background(), "openart:user"+dao.ID, "id", dao.ID, "username", dao.Username, "realname", dao.Realname, "avatar", dao.Avatar, "phone", dao.Phone, "company", dao.Company, "email", dao.Email, "bio", dao.Bio, "img", dao.Img, "verifyType", dao.VerifyType, "verifyName", dao.VerifyName, "isCreator", dao.IsCreator, "followerNum", dao.FollowerNum, "followingNum", dao.FollowingNum, "links", dao.Links)
+	redis.Rdb.HSet(ctx, "openart:user"+dao.ID, "id", dao.ID, "username", dao.Username, "realname", dao.Realname, "avatar", dao.Avatar, "phone", dao.Phone, "company", dao.Company, "email", dao.Email, "bio", dao.Bio, "img", dao.Img, "verifyType", dao.VerifyType, "verifyName", dao.VerifyName, "isCreator", dao.IsCreator, "followerNum", dao.FollowerNum, "followingNum", dao.FollowingNum, "links", dao.Links)
 
 	return "update user success", err
 }
 
 // UploadArt is the resolver for the uploadArt field.
-func UploadArt(items []*model.UploadItem) ([]*model.Item, error) {
+func UploadArt(ctx context.Context, items []*model.UploadItem) ([]*model.Item, error) {
 	sql := ""
 	for i := 0; i < len(items); i++ {
 
@@ -75,7 +75,7 @@ func UploadArt(items []*model.UploadItem) ([]*model.Item, error) {
 		if err != nil {
 			util.Logger.Fatal(err)
 		}
-		redis.Rdb.HSet(context.Background(), "openart:item:"+item.ID, "id", item.ID, "name", item.Name, "tag", item.Tag, "description", item.Description, "uploadUrl", item.UploadURL, "saleStatus", item.SaleStatus, "creatorId", item.CreatorID, "creator", item.Creator, "createDate", item.CreateDate, "collectionId", item.CollectionID)
+		redis.Rdb.HSet(ctx, "openart:item:"+item.ID, "id", item.ID, "name", item.Name, "tag", item.Tag, "description", item.Description, "uploadUrl", item.UploadURL, "saleStatus", item.SaleStatus, "creatorId", item.CreatorID, "creator", item.Creator, "createDate", item.CreateDate, "collectionId", item.CollectionID)
 
 		res_items = append(res_items, &item)
 	}
@@ -84,7 +84,7 @@ func UploadArt(items []*model.UploadItem) ([]*model.Item, error) {
 }
 
 // SetPrice is the resolver for the setPrice field.
-func SetPrice(param *model.PriceParam) (bool, error) {
+func SetPrice(ctx context.Context, param *model.PriceParam) (bool, error) {
 	var price item.ItemPrice
 	price.InitPrice = decimal.NewFromFloat(param.InitPrice)
 
@@ -105,7 +105,7 @@ func SetPrice(param *model.PriceParam) (bool, error) {
 	return true, err
 }
 
-func PlaceBid(param *model.BidParm, username string) (bool, error) {
+func PlaceBid(ctx context.Context, param *model.BidParm, username string) (bool, error) {
 	var biddao bid.Bid
 	biddao.ItemId = param.ItemID
 	biddao.Total = decimal.NewFromFloat(param.Total)
@@ -129,7 +129,7 @@ func PlaceBid(param *model.BidParm, username string) (bool, error) {
 }
 
 // CreateCollection is the resolver for the createCollection field.
-func CreateCollection(param model.CollectionParm) (bool, error) {
+func CreateCollection(ctx context.Context, param model.CollectionParm) (bool, error) {
 	var coll collection.Collection
 	coll.Name = *param.Name
 	coll.Creator = &param.Creator
@@ -144,34 +144,39 @@ func CreateCollection(param model.CollectionParm) (bool, error) {
 }
 
 // Checkout is the resolver for the checkout field.
-func Checkout(param *model.PayParam) (*string, error) {
+func Checkout(ctx context.Context, param *model.PayParam) (*string, error) {
 	panic(fmt.Errorf("not implemented: Checkout - checkout"))
 }
 
 // ConnectWallet is the resolver for the connectWallet field.
-func ConnectWallet(userID string, typeArg model.WalletType) (*model.Wallet, error) {
+func ConnectWallet(ctx context.Context, userID string, typeArg model.WalletType) (*model.Wallet, error) {
 	panic(fmt.Errorf("not implemented: ConnectWallet - connectWallet"))
 }
 
 // Follow is the resolver for the follow field.
-func Follow(param *model.FollowParam) (*string, error) {
+func Follow(ctx context.Context, param *model.FollowParam) (*string, error) {
 	panic(fmt.Errorf("not implemented: Follow - follow"))
 }
 
 // SearchItems is the resolver for the searchItems field.
-func SearchItems(param model.SearchParm) ([]*model.Item, error) {
+func SearchItems(ctx context.Context, param model.SearchParm) ([]*model.Item, error) {
 	var items []*model.Item
 	//add for redis-search
-	redis.Client.Do(context.Background(), redis.Client.B().FtSearch().Index("itemIndex").Query("helloworld").Limit().OffsetNum(0, 10).Build())
+	redis.Client.Do(ctx, redis.Client.B().FtSearch().Index("itemIndex").Query("helloworld").Limit().OffsetNum(0, 10).Build())
 
 	return items, nil
 }
 
+func Search(ctx context.Context, param *string) (*model.SearchResult, error) {
+	var model *model.SearchResult
+	return model, nil
+}
+
 // User is the resolver for the user field.
-func User(id string) (*model.User, error) {
+func User(ctx context.Context, id string) (*model.User, error) {
 
 	var dao model.User
-	res, err := redis.Rdb.HGetAll(context.Background(), "openart:user"+id).Result()
+	res, err := redis.Rdb.HGetAll(ctx, "openart:user"+id).Result()
 	if err != nil {
 		util.Logger.Println(err)
 	}
@@ -212,14 +217,14 @@ func User(id string) (*model.User, error) {
 		dao.Links = linksjson
 	}
 
-	redis.Rdb.HSet(context.Background(), "openart:user"+dao.ID, "id", dao.ID, "username", dao.Username, "realname", dao.Realname, "avatar", dao.Avatar, "phone", dao.Phone, "company", dao.Company, "email", dao.Email, "bio", dao.Bio, "img", dao.Img, "verifyType", dao.VerifyType, "verifyName", dao.VerifyName, "isCreator", dao.IsCreator, "followerNum", dao.FollowerNum, "followingNum", dao.FollowingNum, "links", dao.Links)
+	redis.Rdb.HSet(ctx, "openart:user"+dao.ID, "id", dao.ID, "username", dao.Username, "realname", dao.Realname, "avatar", dao.Avatar, "phone", dao.Phone, "company", dao.Company, "email", dao.Email, "bio", dao.Bio, "img", dao.Img, "verifyType", dao.VerifyType, "verifyName", dao.VerifyName, "isCreator", dao.IsCreator, "followerNum", dao.FollowerNum, "followingNum", dao.FollowingNum, "links", dao.Links)
 	return &dao, err
 }
 
 // Item is the resolver for the item field.
-func Item(id string) (*model.Item, error) {
+func Item(ctx context.Context, id string) (*model.Item, error) {
 	var item model.Item
-	res, err := redis.Rdb.HGetAll(context.Background(), "openart:item"+id).Result()
+	res, err := redis.Rdb.HGetAll(ctx, "openart:item"+id).Result()
 	if err != nil {
 		util.Logger.Println(err)
 	}
@@ -245,13 +250,13 @@ func Item(id string) (*model.Item, error) {
 		util.Logger.Println(err)
 		return &item, err
 	}
-	redis.Rdb.HSet(context.Background(), "openart:item:"+item.ID, "id", item.ID, "name", item.Name, "tag", item.Tag, "description", item.Description, "uploadUrl", item.UploadURL, "saleStatus", item.SaleStatus, "creatorId", item.CreatorID, "creator", item.Creator, "createDate", item.CreateDate, "collectionId", item.CollectionID)
+	redis.Rdb.HSet(ctx, "openart:item:"+item.ID, "id", item.ID, "name", item.Name, "tag", item.Tag, "description", item.Description, "uploadUrl", item.UploadURL, "saleStatus", item.SaleStatus, "creatorId", item.CreatorID, "creator", item.Creator, "createDate", item.CreateDate, "collectionId", item.CollectionID)
 	return &item, err
 
 }
 
 // Collection is the resolver for the collection field.
-func Collection(creator string) ([]*model.Collection, error) {
+func Collection(ctx context.Context, creator string) ([]*model.Collection, error) {
 	var colls []*model.Collection
 
 	res, err := redis.Rdb.Get(context.Background(), "openart:collection:"+creator).Result()
@@ -286,7 +291,7 @@ func Collection(creator string) ([]*model.Collection, error) {
 }
 
 // Items is the resolver for the items field.
-func Items(creator string) ([]*model.Item, error) {
+func Items(ctx context.Context, creator string) ([]*model.Item, error) {
 
 	var items []*model.Item
 
@@ -315,16 +320,16 @@ func Items(creator string) ([]*model.Item, error) {
 	}
 	if len(items) > 0 {
 		collbyte, _ := json.Marshal(items)
-		redis.Rdb.Set(context.Background(), "openart:items:"+creator, collbyte, time.Hour*24*30)
+		redis.Rdb.Set(ctx, "openart:items:"+creator, collbyte, time.Hour*24*30)
 	}
 	return items, err
 }
 
 // SubscriptionPayment is the resolver for the subscriptionPayment field.
-func SubscriptionPayment(itemid *string) (<-chan *model.SubscriptionEvent, error) {
+func SubscriptionPayment(ctx context.Context, itemid *string) (<-chan *model.SubscriptionEvent, error) {
 	panic(fmt.Errorf("not implemented: SubscriptionPayment - subscriptionPayment"))
 }
 
-func SubscriptionBid(itemid *string) (<-chan []*model.Bid, error) {
+func SubscriptionBid(ctx context.Context, itemid *string) (<-chan []*model.Bid, error) {
 	panic(fmt.Errorf("not implemented: SubscriptionBid - subscriptionBid"))
 }

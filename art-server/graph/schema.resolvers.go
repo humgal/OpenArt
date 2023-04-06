@@ -44,7 +44,7 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, user *model.UpdateUse
 	if username == nil {
 		return "fail", fmt.Errorf("access denied")
 	} else {
-		return service.UpdateUser(user, username.Username)
+		return service.UpdateUser(ctx, user, username.Username)
 	}
 }
 
@@ -111,7 +111,7 @@ func (r *mutationResolver) PlaceBid(ctx context.Context, bid *model.BidParm) (bo
 	if user == nil {
 		return false, fmt.Errorf("access denied")
 	} else {
-		return service.PlaceBid(bid, user.Username)
+		return service.PlaceBid(ctx, bid, user.Username)
 	}
 }
 
@@ -121,7 +121,7 @@ func (r *mutationResolver) UploadArt(ctx context.Context, items []*model.UploadI
 	if user == nil {
 		return nil, fmt.Errorf("access denied")
 	} else {
-		return service.UploadArt(items)
+		return service.UploadArt(ctx, items)
 	}
 }
 
@@ -131,7 +131,7 @@ func (r *mutationResolver) SetPriceAndMint(ctx context.Context, param *model.Pri
 	if user == nil {
 		return false, fmt.Errorf("access denied")
 	} else {
-		return service.SetPrice(param)
+		return service.SetPrice(ctx, param)
 	}
 }
 
@@ -141,7 +141,7 @@ func (r *mutationResolver) CreateCollection(ctx context.Context, param model.Col
 	if user == nil {
 		return false, fmt.Errorf("access denied")
 	} else {
-		return service.CreateCollection(param)
+		return service.CreateCollection(ctx, param)
 	}
 }
 
@@ -151,7 +151,7 @@ func (r *mutationResolver) Checkout(ctx context.Context, param *model.PayParam) 
 	if user == nil {
 		return nil, fmt.Errorf("access denied")
 	} else {
-		return service.Checkout(param)
+		return service.Checkout(ctx, param)
 	}
 }
 
@@ -161,7 +161,7 @@ func (r *mutationResolver) ConnectWallet(ctx context.Context, userID string, typ
 	if user == nil {
 		return nil, fmt.Errorf("access denied")
 	} else {
-		return service.ConnectWallet(userID, typeArg)
+		return service.ConnectWallet(ctx, userID, typeArg)
 	}
 }
 
@@ -171,7 +171,7 @@ func (r *mutationResolver) Follow(ctx context.Context, param *model.FollowParam)
 	if user == nil {
 		return nil, fmt.Errorf("access denied")
 	} else {
-		return service.Follow(param)
+		return service.Follow(ctx, param)
 	}
 }
 
@@ -181,7 +181,7 @@ func (r *queryResolver) SearchItems(ctx context.Context, param model.SearchParm)
 	if user == nil {
 		return nil, fmt.Errorf("access denied")
 	} else {
-		return service.SearchItems(param)
+		return service.SearchItems(ctx, param)
 	}
 }
 
@@ -196,7 +196,7 @@ func (r *queryResolver) User(ctx context.Context, id string) (*model.User, error
 	if user == nil {
 		return nil, fmt.Errorf("access denied")
 	} else {
-		return service.User(id)
+		return service.User(ctx, id)
 	}
 }
 
@@ -206,7 +206,7 @@ func (r *queryResolver) Item(ctx context.Context, id string) (*model.Item, error
 	if user == nil {
 		return nil, fmt.Errorf("access denied")
 	} else {
-		return service.Item(id)
+		return service.Item(ctx, id)
 	}
 }
 
@@ -216,7 +216,7 @@ func (r *queryResolver) Collection(ctx context.Context, creator string) ([]*mode
 	if user == nil {
 		return nil, fmt.Errorf("access denied")
 	} else {
-		return service.Collection(creator)
+		return service.Collection(ctx, creator)
 	}
 }
 
@@ -226,7 +226,7 @@ func (r *queryResolver) Items(ctx context.Context, createor string) ([]*model.It
 	if user == nil {
 		return nil, fmt.Errorf("access denied")
 	} else {
-		return service.Items(createor)
+		return service.Items(ctx, createor)
 	}
 }
 
