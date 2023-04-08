@@ -8,3 +8,4 @@ art-server/art-server
 go-fastdfs/*
 art-server/__debug_bin
 art-server/openart.log
+art-contract/*/.gitkeep
