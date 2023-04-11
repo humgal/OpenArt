@@ -1,0 +1,18 @@
+.SearchInput{
+    height: 35;
+    background-color:lightgrey;
+    margin:12px;
+    border-radius: 8px;
+    padding-left: 30px;
+}
+
+.SearchIcon{
+    position: absolute;
+    margin: 12px;
+}
+
+.SearchVoice{
+    position: absolute;
+    right: 5px;
+    margin: 12px;
+}

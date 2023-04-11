@@ -161,15 +161,33 @@ func Follow(ctx context.Context, param *model.FollowParam) (*string, error) {
 // SearchItems is the resolver for the searchItems field.
 func SearchItems(ctx context.Context, param model.SearchParm) ([]*model.Item, error) {
 	var items []*model.Item
-	//add for redis-search
-	redis.Client.Do(ctx, redis.Client.B().FtSearch().Index("itemIndex").Query("helloworld").Limit().OffsetNum(0, 10).Build())
-
+	//search in mysql
+	rows, err := db.DB.Query("")
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var item model.Item
+		rows.Scan(&item.ID)
+	}
 	return items, nil
 }
 
 func Search(ctx context.Context, param *string) (*model.SearchResult, error) {
-	var model *model.SearchResult
-	return model, nil
+	var res *model.SearchResult
+	var items []*model.Item
+	var creators []*model.User
+	err := redis.Client.Do(ctx, redis.Client.B().FtSearch().Index("itemIdx").Query(*param).Limit().OffsetNum(0, 10).Build()).DecodeJSON(&items)
+	if err != nil {
+		util.Logger.Println(err)
+	}
+	err = redis.Client.Do(ctx, redis.Client.B().FtSearch().Index("userIdx").Query(*param).Limit().OffsetNum(0, 10).Build()).DecodeJSON(&creators)
+	if err != nil {
+		util.Logger.Println(err)
+	}
+	res.Items = items
+	res.People = creators
+	return res, err
 }
 
 // User is the resolver for the user field.
