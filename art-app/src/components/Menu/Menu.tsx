@@ -1,5 +1,5 @@
-import { View, Text,Alert } from "react-native";
-import { Button } from "@react-native-material/core";
+import { View, Text,Alert,Button } from "react-native";
+
 const Menu = () => {
   return (
     <View style={{ flex: 1 }}>
@@ -13,7 +13,7 @@ const Menu = () => {
       <View style={{ flex: 5 }}>
         <View  style={{ flex: 3}}></View>
         <View  style={{ flex: 2, width:'70%',alignSelf:'center'}}>
-        <Button title="Connect Wallet"  style={{height:40 }} onPress={() => {}} />
+        <Button title="Connect Wallet" onPress={() => {}} />
         </View>
             
       </View>

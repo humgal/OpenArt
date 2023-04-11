@@ -1,7 +1,7 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
 import Icon from "@expo/vector-icons/AntDesign";
-import { IconButton } from "@react-native-material/core";
+import { IconButton } from "react-native-paper";
 import * as RootNavigation from '../RootNavigation'
 
 const BottomTab = (props:any) => {
